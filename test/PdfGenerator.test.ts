@@ -245,7 +245,7 @@ describe('PdfGenerator', () => {
   });
 
   describe('generateTableOfContents', () => {
-    it('应该生成正确的目录结构', () => {
+    it('应该生成正确的目录结构', async () => {
       const mockTree: TreeNode = {
         title: 'Root',
         children: [
@@ -266,7 +266,7 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const toc = (generator as any).generateTableOfContents(mockTree);
+      const toc = await (generator as any).generateTableOfContents(mockTree);
 
       expect(toc).toContain('<ul class="toc-list">');
       expect(toc).toContain('文档1');
