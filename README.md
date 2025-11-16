@@ -13,7 +13,7 @@
 ## 安装
 
 ```bash
-pnpm install
+pnpm install markbook
 ```
 
 ## 构建

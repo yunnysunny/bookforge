@@ -1,5 +1,5 @@
 {
-  "name": "gitbook-parser",
+  "name": "markbook",
   "version": "1.0.0",
   "description": "一个用于解析 gitbook markdown 文件并生成 HTML 网站或 PDF 文件的工具",
   "main": "dist/index.js",

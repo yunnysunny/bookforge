@@ -139,7 +139,7 @@ export class HtmlGenerator extends AbstractGenerator {
    * 生成目录
    */
   private async generateTableOfContents(headings: Heading[]): Promise<string> {
-    return this.generateTocItems(headings, 0);
+    return await this.generateTocItems(headings, 0);
   }
 
   /**
