@@ -72,8 +72,6 @@ describe('HtmlGenerator', () => {
 
       expect(writeFileSync).toHaveBeenCalledTimes(3); // index.html + styles.css + script.js
     });
-
-
   });
 
   describe('generateHtmlTemplate', () => {
@@ -87,9 +85,7 @@ describe('HtmlGenerator', () => {
       };
       const mockTree: TreeNode = {
         title: 'Root',
-        children: [
-          page,
-        ],
+        children: [page],
       };
 
       const html = await (generator as any).generateHtmlTemplate(
@@ -121,10 +117,7 @@ describe('HtmlGenerator', () => {
       };
       const mockTree: TreeNode = {
         title: 'Root',
-        children: [
-          page1,
-          page2,
-        ],
+        children: [page1, page2],
       };
 
       const html = await (generator as any).generateHtmlTemplate(
@@ -244,7 +237,9 @@ describe('HtmlGenerator', () => {
         },
       ];
 
-      const toc = await (generator as any).generateTableOfContents(mockHeadings);
+      const toc = await (generator as any).generateTableOfContents(
+        mockHeadings,
+      );
 
       expect(toc).toContain('<ul class="toc-list">');
       expect(toc).toContain('主标题');

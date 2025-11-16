@@ -16,7 +16,7 @@
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --watchAll=false",
     "lint": "biome check .",
-    "lint:fix": "biome check . --write"
+    "lint:fix": "biome check . --write --max-diagnostics=200"
   },
   "keywords": [
     "gitbook",
