@@ -13,7 +13,7 @@
 ## 安装
 
 ```bash
-pnpm install markbook
+pnpm install bookforge -g
 ```
 
 ## 构建
@@ -26,13 +26,13 @@ pnpm build
 
 ```bash
 # 生成 HTML 网站
-pnpm start html --input ./docs --output ./dist/html
+bookforge html --input ./docs --output ./dist/html
 
 # 生成 PDF 文件
-pnpm start pdf --input ./docs --output ./dist/pdf
+bookforge pdf --input ./docs --output ./dist/pdf
 
 # 同时生成 HTML 和 PDF
-pnpm start all --input ./docs --output ./dist
+bookforge all --input ./docs --output ./dist
 ```
 
 ## 开发
