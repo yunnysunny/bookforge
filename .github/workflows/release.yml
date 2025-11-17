@@ -26,6 +26,8 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org/
+          provenance: true      # 启用 provenance
+          always-auth: true     # 必须，确保 token 用于 publish
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
