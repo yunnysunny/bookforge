@@ -37,7 +37,7 @@ jobs:
       - name: Publish
         run: |
           npm run build
-          npm publish || cat /home/runner/.npm/_logs/*.log
+          npm publish
         env:
           NPM_CONFIG_PROVENANCE: true
       
