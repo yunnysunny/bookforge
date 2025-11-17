@@ -9,7 +9,7 @@
     "bookforge": "dist/cli.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "dev": "tsc --watch",
     "start": "tsx src/cli.ts",
     "start:html": "tsx src/cli.ts html --input ./docs --output ./examples/html",
