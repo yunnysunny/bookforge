@@ -3,7 +3,6 @@
 import { access, constants, readFile as fsReadFile, mkdir } from 'fs/promises';
 import { basename, extname } from 'path';
 
-
 export async function mkdirAsync(path: string): Promise<string | undefined> {
   return await mkdir(path, { recursive: true });
 }
@@ -33,12 +32,15 @@ export function generateIdFromText(text: string): string {
   let slug = text
     .toLowerCase()
     .trim()
-    .replace(/<[!\/a-z].*?>/gi, "")  // 移除 HTML 标签
-    .replace(/[\u2000-\u206F\u2E00-\u2E7F\\\\'!"#$%&()*+,./:;<=>?@[\\\]^`{|}~]/g, "")
-    .replace(/\s+/g, "-");           // 空白替换为 -
+    .replace(/<[!/a-z].*?>/gi, '') // 移除 HTML 标签
+    .replace(
+      /[\u2000-\u206F\u2E00-\u2E7F\\\\'!"#$%&()*+,./:;<=>?@[\\\]^`{|}~]/g,
+      '',
+    )
+    .replace(/\s+/g, '-'); // 空白替换为 -
 
   // 去掉前后 -
-  slug = slug.replace(/^-+|-+$/g, "");
+  slug = slug.replace(/^-+|-+$/g, '');
   return slug;
 }
 
