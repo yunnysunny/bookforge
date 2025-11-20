@@ -127,7 +127,7 @@ describe('HtmlGenerator', () => {
         mockTree,
       );
 
-      expect(html).toContain('<aside class="sidebar">');
+      expect(html).toContain('<aside class="sidebar"');
       expect(html).toContain('<nav class="sidebar-nav">');
       expect(html).toContain('文档1');
       expect(html).toContain('文档2');

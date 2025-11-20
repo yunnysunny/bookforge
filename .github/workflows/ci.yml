@@ -52,17 +52,17 @@ jobs:
       - name: Test On Node ${{ matrix.node-version }}
         run: |
           pnpm test:coverage
-      # - name: Coveralls Parallel
-      #   uses: coverallsapp/github-action@v2
-      #   with:
-      #     flag-name: run-${{ join(matrix.*, '-') }}
-      #     parallel: true
-  # finish:
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Finalize Coveralls
-  #       uses: coverallsapp/github-action@v2
-  #       with:
-  #         github-token: ${{ secrets.GITHUB_TOKEN }}
-  #         parallel-finished: true
+      - name: Coveralls Parallel
+        uses: coverallsapp/github-action@v2
+        with:
+          flag-name: run-${{ join(matrix.*, '-') }}
+          parallel: true
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Finalize Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true

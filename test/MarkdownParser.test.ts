@@ -131,7 +131,7 @@ console.log('Hello World');
         destDir: 'test.html',
       });
 
-      expect(html).toContain('<h1>标题</h1>');
+      expect(html).toContain('<h1 id="标题">');
       expect(html).toContain('<strong>粗体</strong>');
       expect(html).toContain('<em>斜体</em>');
       expect(html).toContain('<ul>');

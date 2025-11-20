@@ -323,7 +323,7 @@ describe('PdfGenerator', () => {
 
       expect(content).toContain('<div class="content">');
       expect(content).toContain('<h1>测试文档</h1>');
-      expect(content).toContain('<h1>测试</h1>');
+      expect(content).toContain('<h1 id="测试">');
       expect(content).toContain('这是测试内容。');
     });
 
