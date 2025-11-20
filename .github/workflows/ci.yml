@@ -51,7 +51,7 @@ jobs:
           pnpm lint
       - name: Test On Node ${{ matrix.node-version }}
         run: |
-          pnpm test
+          pnpm test:coverage
       # - name: Coveralls Parallel
       #   uses: coverallsapp/github-action@v2
       #   with:
