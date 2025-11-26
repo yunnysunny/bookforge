@@ -4,6 +4,7 @@ import { join } from 'path';
 import { MarkdownParser } from '../core/MarkdownParser';
 import type { TreeNode } from '../types';
 import { Tpl } from '../utils/tpl';
+import { Slogger } from 'node-slogger';
 
 // const __filename = fileURLToPath(import.meta.url);
 // const __dirname = dirname(__filename);
@@ -12,10 +13,11 @@ export abstract class AbstractGenerator {
   protected outputDir: string;
   protected markdownParser: MarkdownParser;
   protected name: string = '';
-
+  protected logger: Slogger;
   constructor(outputDir: string) {
     this.outputDir = outputDir;
     this.markdownParser = new MarkdownParser();
+    this.logger = new Slogger();
   }
   protected abstract generateAssets(
     tree: TreeNode,

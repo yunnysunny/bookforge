@@ -20,6 +20,9 @@ importers:
       marked:
         specifier: ^17.0.0
         version: 17.0.0
+      node-slogger:
+        specifier: ^3.0.0
+        version: 3.0.0
       puppeteer:
         specifier: ^24.30.0
         version: 24.30.0(typescript@5.9.3)
@@ -1232,6 +1235,10 @@ packages:
   netmask@2.0.2:
     resolution: {integrity: sha512-dBpDMdxv9Irdq66304OLfEmQ9tbNRFnFTuZiLo+bD+r332bBmMJ8GBLXklIXXgxd3+v9+KUnZaUR5PJMa75Gsg==}
     engines: {node: '>= 0.4.0'}
+
+  node-slogger@3.0.0:
+    resolution: {integrity: sha512-I+GdVdp0bdUTw4xxuVwZ4swSWVOCV2ay+m4jBuWveCz3J8YMe6SYEI2xcw/c1/NaUD9DSIvDCNiMCtDneotj5g==}
+    engines: {node: '>=14.0.0'}
 
   normalize-path@2.1.1:
     resolution: {integrity: sha512-3pKJwH184Xo/lnH6oyP1q2pMd7HcypqqmRs91/6/i2CGtWwIKGCkOOMTm/zXbgTEWHw1uNpNi/igc3ePOYHb6w==}
@@ -2813,6 +2820,8 @@ snapshots:
       - supports-color
 
   netmask@2.0.2: {}
+
+  node-slogger@3.0.0: {}
 
   normalize-path@2.1.1:
     dependencies:

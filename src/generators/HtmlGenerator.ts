@@ -6,9 +6,6 @@ import { join } from 'path';
 import type { Heading, TreeNode } from '../types/index.js';
 import { AbstractGenerator } from './AbstractGenerator.js';
 
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = dirname(__filename);
-
 export class HtmlGenerator extends AbstractGenerator {
   protected async generateAssets(tree: TreeNode, title: string): Promise<void> {
     // 生成主页面
@@ -60,6 +57,7 @@ export class HtmlGenerator extends AbstractGenerator {
           const fileName = this.getFileName(node.title) + '.html';
           const filePath = join(this.outputDir, fileName);
           await writeFile(filePath, html, 'utf-8');
+          this.logger.info(`Generated document page: ${fileName}`);
         }
       }),
     );

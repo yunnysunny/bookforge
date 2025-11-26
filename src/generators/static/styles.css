@@ -79,21 +79,24 @@ body {
 .level-3 .sidebar-link { padding-left: 60px; }
 
 .main-content {
-    margin-left: 300px;
     flex: 1;
-    padding: 40px;
-    transition: margin-left 0.3s ease-in-out;
+    width: 100%;
+    padding-left: 310px;
+    padding-right: 10px;
+    padding-top: 40px;
+    padding-bottom: 40px;
+    transition: padding-left 0.3s ease-in-out;
 }
 
 .sidebar.hidden ~ .main-content {
-    margin-left: 0;
+    padding-left: 0;
 }
 
 .content-wrapper {
-    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     display: flex;
-    gap: 40px;
+    gap: 20px;
 }
 
 .content {
