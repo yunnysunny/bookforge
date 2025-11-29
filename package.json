@@ -16,6 +16,7 @@
     "start:html": "tsx src/cli.ts html --input ./docs --output ./examples/html",
     "start:pdf": "tsx src/cli.ts pdf --input ./docs --output ./examples/pdf",
     "start:all": "tsx src/cli.ts all --input ./docs --output ./examples",
+    "start:single": "tsx src/cli.ts html --input ./test/fixtures/single --output ./examples/single",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",

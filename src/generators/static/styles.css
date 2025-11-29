@@ -101,14 +101,19 @@ body {
 
 .content {
     flex: 1;
+    min-width: 0;
     background: white;
     padding: 40px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
+.content img {
+    max-width: 100%;
+}
+
 .toc {
-    width: 250px;
+    flex: 0 0 250px; /* grow=0, shrink=0, basis=250px */
     background: white;
     padding: 20px;
     border-radius: 8px;
@@ -169,7 +174,7 @@ body {
 .toc.hidden {
     width: 50px;
     padding: 20px 10px;
-    min-width: 50px;
+    flex: 0 0 50px;  /* 宽度变成 50px */
 }
 
 .toc.hidden .toc-content {
