@@ -32,4 +32,5 @@ export interface GitBookConfig {
 export interface ParserOptions {
   encoding?: string;
   ignorePatterns?: string[];
+  parseMode?: 'gitbook' | 'notion';
 }

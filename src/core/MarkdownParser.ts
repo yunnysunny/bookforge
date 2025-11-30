@@ -1,10 +1,11 @@
 // Markdown 解析器
 
 import { copyFile } from 'fs/promises';
-import { marked, type Token, type Tokens } from 'marked';
+import { marked, type Token, type Tokens, Marked } from 'marked';
 import { dirname, join } from 'path';
 import type { Heading, MarkdownFile } from '../types/index.js';
 import { generateIdFromText, mkdirAsync, readFile } from '../utils';
+import { gitbookExtension } from './marked-plugins/gitbook.plugin.js';
 
 const renderer = new marked.Renderer();
 renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
@@ -16,15 +17,16 @@ renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
 </h${depth}>`;
 };
 export class MarkdownParser {
-  private marked: typeof marked;
+  private marked: Marked;
 
   constructor() {
-    this.marked = marked;
+    this.marked = new Marked();
     this.marked.setOptions({
       gfm: true,
       breaks: true,
       renderer,
     });
+    this.marked.use(gitbookExtension);
   }
 
   /**
@@ -114,7 +116,7 @@ export class MarkdownParser {
       destDir: string;
     },
   ): Promise<string> {
-    const html = await this.marked(content, {
+    const html = await this.marked.parse(content, {
       walkTokens: async (token: Token) => {
         if (token.type === 'image') {
           const src = token.href;

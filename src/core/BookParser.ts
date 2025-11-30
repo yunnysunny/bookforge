@@ -1,13 +1,15 @@
 // GitBook 解析器
 import { readdirSync, statSync } from 'fs';
+import { stat } from 'fs/promises';
 import { dirname, join } from 'path';
 import type { MarkdownFile, ParserOptions, TreeNode } from '../types';
-import { isMarkdownFile, readFile } from '../utils';
+import { createTempDir, isMarkdownFile, isZipFile, readFile, unzipFile } from '../utils';
 import { MarkdownParser } from './MarkdownParser';
 
 export class GitBookParser {
   private markdownParser: MarkdownParser;
   private options: ParserOptions;
+  private _realPath?: string;
 
   constructor(options: ParserOptions = {}) {
     this.markdownParser = new MarkdownParser();
@@ -17,23 +19,40 @@ export class GitBookParser {
       ...options,
     };
   }
+  public get realPath(): string | undefined {
+    return this._realPath;
+  }
+  private async getRealPath(path: string): Promise<string> {
+    const stats = await stat(path);
+    if (stats.isDirectory()) {
+      return path;
+    }
+    if (isZipFile(path)) {
+      const realPath = await createTempDir();
+      await unzipFile(path, realPath);
+      this._realPath = realPath;
+      return realPath;
+    }
+    throw new TypeError(`Not supported file: ${path}`);
+  }
 
   /**
    * 解析 GitBook 项目
    */
   async parseProject(inputPath: string): Promise<TreeNode> {
+    const realPath = await this.getRealPath(inputPath);
     const rootNode: TreeNode = {
       title: 'Root',
       children: [],
     };
 
     // 查找入口文件
-    const entryFile = this.findEntryFile(inputPath);
+    const entryFile = this.findEntryFile(realPath);
     if (entryFile) {
       await this.parseEntryFile(entryFile, rootNode);
     } else {
       // 如果没有找到入口文件，扫描所有 markdown 文件
-      await this.scanMarkdownFiles(inputPath, rootNode);
+      await this.scanMarkdownFiles(realPath, rootNode);
     }
 
     return rootNode;

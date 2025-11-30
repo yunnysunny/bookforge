@@ -329,6 +329,27 @@ body {
     display: inline-block;
     transition: transform 0.3s ease;
 }
+/* gitbook 样式 */
+/* 提示框 */
+.gb-note {
+    padding: 12px;
+    border-left: 4px solid #448aff;
+    background: #ecf5ff;
+    border-radius: 4px;
+  }
+  
+  .gb-hint {
+    padding: 12px;
+    border-left: 4px solid #4caf50;
+    background: #e8f5e9;
+    border-radius: 4px;
+  }
+  
+  .gb-hint.info {
+    border-color: #2196f3;
+    background: #e3f2fd;
+  }
+  
 
 /* 响应式设计 - 中等屏幕：TOC显示在内容上方 */
 @media (max-width: 1024px) {

@@ -3,7 +3,7 @@
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { GitBookParser } from './core/GitBookParser.js';
+import { GitBookParser } from './core/BookParser.js';
 import { HtmlGenerator } from './generators/HtmlGenerator.js';
 import { PdfGenerator } from './generators/PdfGenerator.js';
 import type { GitBookConfig } from './types/index.js';
