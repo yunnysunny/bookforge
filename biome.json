@@ -35,7 +35,7 @@
     "enabled": true,
     "actions": {
       "source": {
-        "organizeImports": "warn"
+        "organizeImports": "off"
       }
     }
   }

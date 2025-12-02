@@ -1,6 +1,14 @@
 // 工具函数
 
-import { access, constants, readFile as fsReadFile, mkdir, mkdtemp, unlink, readdir } from 'fs/promises';
+import {
+  access,
+  constants,
+  readFile as fsReadFile,
+  mkdir,
+  mkdtemp,
+  unlink,
+  readdir,
+} from 'fs/promises';
 import { basename, extname, join } from 'path';
 import os from 'os';
 import unzipper from 'unzipper';
@@ -64,7 +72,9 @@ export function getFileName(filePath: string): string {
 export function normalizePath(path: string): string {
   return path.replace(/\\/g, '/');
 }
-export async function createTempDir(dirnamePrefix: string='bookforge-'): Promise<string> {
+export async function createTempDir(
+  dirnamePrefix: string = 'bookforge-',
+): Promise<string> {
   const tempDir = await mkdtemp(join(os.tmpdir(), dirnamePrefix));
   return tempDir;
 }
@@ -72,7 +82,10 @@ export async function removeDir(dir: string): Promise<void> {
   await unlink(dir);
 }
 
-export async function unzipFile(zipPath: string, destDir: string): Promise<void> {
+export async function unzipFile(
+  zipPath: string,
+  destDir: string,
+): Promise<void> {
   const directory = await unzipper.Open.file(zipPath);
   await directory.extract({ path: destDir });
   const files = await readdir(destDir);
