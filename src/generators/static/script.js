@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initSidebar() {
         if (isMobile()) {
             // 移动端：默认隐藏
-            sidebar.classList.add('hidden');
+            sidebar.classList.remove('hidden');
             sidebar.classList.remove('open');
         } else {
             // 桌面端：根据localStorage决定
