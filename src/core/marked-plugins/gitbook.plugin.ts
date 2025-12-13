@@ -1,13 +1,13 @@
-import { marked } from 'marked';
-import { readFile } from 'fs/promises';
-import path from 'path';
+import { marked, type MarkedExtension, type Tokens } from 'marked';
+// import { readFile } from 'fs/promises';
+// import path from 'path';
 
 // ========================
 // 1. GitBook 标签渲染器
 // ========================
 const gitbookTagRenderers: Record<
   string,
-  (text: string, params: Record<string, string>) => string | Promise<string>
+  (text: string, params: Record<string, string>) => string
 > = {
   // Callout
   note: (text) => `<div class="gb-note">${marked.parse(text)}</div>`,
@@ -28,37 +28,37 @@ const gitbookTagRenderers: Record<
     )}</div>`,
   tabs: (text) => `<div class="gb-tabs">${marked.parse(text)}</div>`,
 
-  // include 文件内容
-  include: async (text, params) => {
-    const filePath = params.file;
-    if (!filePath) return '<!-- include file not specified -->';
-    try {
-      const content = await readFile(path.resolve(filePath), 'utf-8');
-      return marked.parse(content); // 将文件内容解析为 markdown
-    } catch (err) {
-      return `<!-- include file error: ${err instanceof Error ? err.message : err?.toString()} -->`;
-    }
-  },
+  // // include 文件内容
+  // include: async (text, params) => {
+  //   const filePath = params.file;
+  //   if (!filePath) return '<!-- include file not specified -->';
+  //   try {
+  //     const content = await readFile(path.resolve(filePath), 'utf-8');
+  //     return marked.parse(content); // 将文件内容解析为 markdown
+  //   } catch (err) {
+  //     return `<!-- include file error: ${err instanceof Error ? err.message : err?.toString()} -->`;
+  //   }
+  // },
 
-  // toc: 生成目录（h1~h6）
-  toc: (text) => {
-    const lines = text.split('\n');
-    const items = lines
-      .map((line) => {
-        const match = /^(#{1,6})\s+(.*)/.exec(line);
-        if (!match) return null;
-        const level = match[1].length;
-        const title = match[2];
-        const id = title
-          .toLowerCase()
-          .replace(/[^\w]+/g, '-')
-          .replace(/^-+|-+$/g, '');
-        return `<li class="toc-level-${level}"><a href="#${id}">${title}</a></li>`;
-      })
-      .filter(Boolean)
-      .join('\n');
-    return `<ul class="gb-toc">\n${items}\n</ul>`;
-  },
+  // // toc: 生成目录（h1~h6）
+  // toc: (text) => {
+  //   const lines = text.split('\n');
+  //   const items = lines
+  //     .map((line) => {
+  //       const match = /^(#{1,6})\s+(.*)/.exec(line);
+  //       if (!match) return null;
+  //       const level = match[1].length;
+  //       const title = match[2];
+  //       const id = title
+  //         .toLowerCase()
+  //         .replace(/[^\w]+/g, '-')
+  //         .replace(/^-+|-+$/g, '');
+  //       return `<li class="toc-level-${level}"><a href="#${id}">${title}</a></li>`;
+  //     })
+  //     .filter(Boolean)
+  //     .join('\n');
+  //   return `<ul class="gb-toc">\n${items}\n</ul>`;
+  // },
 };
 
 // ========================
@@ -68,14 +68,22 @@ const gitbookTagRenderers: Record<
 function parseParams(str: string) {
   const params: Record<string, string> = {};
   const re = /(\w+)="(.*?)"/g;
-  let m;
-  while ((m = re.exec(str))) {
+  let m: RegExpExecArray | null = null;
+  while (true) {
+    m = re.exec(str);
+    if (!m) break;
     params[m[1]] = m[2];
   }
   return params;
 }
-
-export const gitbookExtension = {
+interface GitbookTagToken extends Tokens.Generic {
+  tag: string;
+  params: Record<string, string>;
+  text: string;
+  raw: string;
+  type: 'gb-tag';
+}
+export const gitbookExtension: MarkedExtension = {
   extensions: [
     {
       name: 'gb-tag',
@@ -83,7 +91,7 @@ export const gitbookExtension = {
       start(src: string) {
         return src.match(/\{%/)?.index;
       },
-      tokenizer(src: string) {
+      tokenizer(src: string): GitbookTagToken | undefined {
         const rule = /^\{% (\w+)(.*?) %\}([\s\S]*?)\{% end\1 %\}/;
         const match = rule.exec(src);
         if (!match) return;
@@ -97,10 +105,11 @@ export const gitbookExtension = {
           text: content.trim(),
         };
       },
-      renderer(token: any) {
-        const fn = gitbookTagRenderers[token.tag];
-        if (fn) return fn(token.text, token.params);
-        return token.raw; // 未知标签原样输出
+      renderer(token: Tokens.Generic) {
+        const _token = token as GitbookTagToken;
+        const fn = gitbookTagRenderers[_token.tag];
+        if (fn) return fn(_token.text, _token.params);
+        return _token.raw; // 未知标签原样输出
       },
     },
   ],
