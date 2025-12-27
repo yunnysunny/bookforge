@@ -3,7 +3,7 @@
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { GitBookParser } from './core/BookParser.js';
+import { BookParser } from './core/BookParser.js';
 import { HtmlGenerator } from './generators/HtmlGenerator.js';
 import { PdfGenerator } from './generators/PdfGenerator.js';
 import type { GitBookConfig } from './types/index.js';
@@ -20,6 +20,8 @@ program
   .description('生成 HTML 网站')
   .option('-i, --input <path>', '输入目录路径', './docs')
   .option('-o, --output <path>', '输出目录路径', './dist/html')
+  .option('-m, --mode [mode]', '解析模式(gitbook, notion)', 'gitbook')
+  .option('-s, --skip [skip]', '忽略的目录')
   .option('-t, --title <title>', '网站标题', 'GitBook')
   .action(async (options) => {
     try {
@@ -27,6 +29,8 @@ program
 
       const config: GitBookConfig = {
         input: options.input,
+        mode: options.mode,
+        skip: options.skip?.split(','),
         output: options.output,
         format: 'html',
         title: options.title,
@@ -47,6 +51,8 @@ program
   .description('生成 PDF 文件')
   .option('-i, --input <path>', '输入目录路径', './docs')
   .option('-o, --output <path>', '输出目录路径', './dist/pdf')
+  .option('-m, --mode [mode]', '解析模式(gitbook, notion)', 'gitbook')
+  .option('-s, --skip [skip]', '忽略的目录')
   .option('-t, --title <title>', '文档标题', 'GitBook')
   .action(async (options) => {
     try {
@@ -54,6 +60,8 @@ program
 
       const config: GitBookConfig = {
         input: options.input,
+        mode: options.mode,
+        skip: options.skip?.split(','),
         output: options.output,
         format: 'pdf',
         title: options.title,
@@ -74,6 +82,8 @@ program
   .description('同时生成 HTML 网站和 PDF 文件')
   .option('-i, --input <path>', '输入目录路径', './docs')
   .option('-o, --output <path>', '输出目录路径', './dist')
+  .option('-m, --mode [mode]', '解析模式(gitbook, notion)', 'gitbook')
+  .option('-s, --skip [skip]', '忽略的目录')
   .option('-t, --title <title>', '文档标题', 'GitBook')
   .action(async (options) => {
     try {
@@ -81,6 +91,8 @@ program
 
       const htmlConfig: GitBookConfig = {
         input: options.input,
+        mode: options.mode,
+        skip: options.skip?.split(','),
         output: `${options.output}/html`,
         format: 'html',
         title: options.title,
@@ -88,6 +100,8 @@ program
 
       const pdfConfig: GitBookConfig = {
         input: options.input,
+        mode: options.mode,
+        skip: options.skip?.split(','),
         output: `${options.output}/pdf`,
         format: 'pdf',
         title: options.title,
@@ -108,7 +122,10 @@ program
  * 生成 HTML 网站
  */
 async function generateHtml(config: GitBookConfig): Promise<void> {
-  const parser = new GitBookParser();
+  const parser = new BookParser({
+    parseMode: config.mode,
+    ignorePatterns: config.skip,
+  });
   const tree = await parser.parseProject(config.input);
 
   const generator = new HtmlGenerator(config.output);
@@ -119,7 +136,10 @@ async function generateHtml(config: GitBookConfig): Promise<void> {
  * 生成 PDF 文件
  */
 async function generatePdf(config: GitBookConfig): Promise<void> {
-  const parser = new GitBookParser();
+  const parser = new BookParser({
+    parseMode: config.mode,
+    ignorePatterns: config.skip,
+  });
   const tree = await parser.parseProject(config.input);
 
   const generator = new PdfGenerator(config.output);

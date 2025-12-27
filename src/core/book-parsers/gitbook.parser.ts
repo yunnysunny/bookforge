@@ -1,22 +1,16 @@
 import { dirname, join } from 'path';
-import type { MarkdownFile, ParserOptions, TreeNode } from '../../types';
-import type { IBookParser } from './interfaces';
+import type { TreeNode } from '../../types';
 import { readdir, readFile, stat } from 'fs/promises';
 import { isMarkdownFile } from '../../utils';
-import { MarkdownParser } from '../MarkdownParser';
+import { AbstractParser } from './abstract.parser';
 
-export class GitbookParser implements IBookParser {
-  private options: ParserOptions;
-  private markdownParser: MarkdownParser;
-  constructor(options: ParserOptions) {
-    this.options = options;
-    this.markdownParser = new MarkdownParser();
-  }
+export class GitbookParser extends AbstractParser {
+
   async parse(input: string): Promise<TreeNode> {
     const rootNode: TreeNode = {
-        title: 'Root',
-        children: [],
-      };
+      title: 'Root',
+      children: [],
+    };
     // 查找入口文件
     const entryFile = await this.findEntryFile(input);
     if (entryFile) {
@@ -146,17 +140,5 @@ export class GitbookParser implements IBookParser {
     return files;
   }
 
-  /**
-   * 解析单个 markdown 文件
-   */
-  private async parseMarkdownFile(
-    filePath: string,
-  ): Promise<MarkdownFile | null> {
-    try {
-      return await this.markdownParser.parseFile(filePath);
-    } catch (error) {
-      console.warn(`解析文件失败: ${filePath}`, error);
-      return null;
-    }
-  }
+
 }

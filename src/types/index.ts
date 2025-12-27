@@ -20,17 +20,19 @@ export interface TreeNode {
   headings?: Heading[];
   children: TreeNode[];
 }
-
+export type ParserMode = 'gitbook' | 'notion';
 export interface GitBookConfig {
   input: string;
   output: string;
   format: 'html' | 'pdf' | 'all';
+  mode?: ParserMode;
   title?: string;
   author?: string;
+  skip?: string[];
 }
 
 export interface ParserOptions {
   encoding?: string;
   ignorePatterns?: string[];
-  parseMode?: 'gitbook' | 'notion';
+  parseMode?: ParserMode;
 }

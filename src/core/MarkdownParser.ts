@@ -129,8 +129,9 @@ export class MarkdownParser {
           ) {
             return;
           }
-          const imageFromPath = join(dirname(options.contentPath), src);
-          const imageToPath = join(options.destDir, src);
+          const decodedSrc = decodeURIComponent(src);
+          const imageFromPath = join(dirname(options.contentPath), decodedSrc);
+          const imageToPath = join(options.destDir, decodedSrc);
           const imageToDir = dirname(imageToPath);
           await mkdirAsync(imageToDir);
           await copyFile(imageFromPath, imageToPath);
