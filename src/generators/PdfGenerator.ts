@@ -10,7 +10,7 @@ export class PdfGenerator extends AbstractGenerator {
     this.name = 'pdf';
   }
 
-  protected async generateAssets(tree: TreeNode, title: string): Promise<void> {
+  protected async doGenerate(tree: TreeNode, title: string): Promise<void> {
     const htmlContent = await this.generateHtmlContent(tree, title);
     await this.generatePdfFromHtml(htmlContent, title);
   }

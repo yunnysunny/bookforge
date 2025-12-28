@@ -1,6 +1,4 @@
 import { marked, type MarkedExtension, type Tokens } from 'marked';
-// import { readFile } from 'fs/promises';
-// import path from 'path';
 
 // ========================
 // 1. GitBook 标签渲染器
@@ -28,37 +26,6 @@ const gitbookTagRenderers: Record<
     )}</div>`,
   tabs: (text) => `<div class="gb-tabs">${marked.parse(text)}</div>`,
 
-  // // include 文件内容
-  // include: async (text, params) => {
-  //   const filePath = params.file;
-  //   if (!filePath) return '<!-- include file not specified -->';
-  //   try {
-  //     const content = await readFile(path.resolve(filePath), 'utf-8');
-  //     return marked.parse(content); // 将文件内容解析为 markdown
-  //   } catch (err) {
-  //     return `<!-- include file error: ${err instanceof Error ? err.message : err?.toString()} -->`;
-  //   }
-  // },
-
-  // // toc: 生成目录（h1~h6）
-  // toc: (text) => {
-  //   const lines = text.split('\n');
-  //   const items = lines
-  //     .map((line) => {
-  //       const match = /^(#{1,6})\s+(.*)/.exec(line);
-  //       if (!match) return null;
-  //       const level = match[1].length;
-  //       const title = match[2];
-  //       const id = title
-  //         .toLowerCase()
-  //         .replace(/[^\w]+/g, '-')
-  //         .replace(/^-+|-+$/g, '');
-  //       return `<li class="toc-level-${level}"><a href="#${id}">${title}</a></li>`;
-  //     })
-  //     .filter(Boolean)
-  //     .join('\n');
-  //   return `<ul class="gb-toc">\n${items}\n</ul>`;
-  // },
 };
 
 // ========================
@@ -115,5 +82,3 @@ export const gitbookExtension: MarkedExtension = {
   ],
 };
 
-// 注册
-// marked.use(gitbookExtension);

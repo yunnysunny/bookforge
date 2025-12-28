@@ -1,15 +1,15 @@
 import type { TreeNode } from '../../types';
-import { MarkdownRelationUtils } from '../../utils/markdown';
+import { MarkdownRelationManager } from '../../utils/markdown';
 import { AbstractParser } from './abstract.parser';
 
 export class NotionParser extends AbstractParser {
   private parsedNodes = new Set<string>();
-  async parse(input: string): Promise<TreeNode> {
+  async doParse(input: string): Promise<TreeNode> {
     const rootNode: TreeNode = {
       title: 'Root',
       children: [],
     };
-    const markdownUtils = new MarkdownRelationUtils({
+    const markdownUtils = new MarkdownRelationManager({
       inputPath: input,
       ignorePatterns: this.options.ignorePatterns,
     });
@@ -32,7 +32,7 @@ export class NotionParser extends AbstractParser {
   }
   private async buildChildrenTree(
     parent: TreeNode,
-    markdownUtils: MarkdownRelationUtils,
+    markdownUtils: MarkdownRelationManager,
   ): Promise<TreeNode> {
     const children = markdownUtils.getChildren(parent.path as string);
     for (const child of children) {
@@ -52,5 +52,18 @@ export class NotionParser extends AbstractParser {
       await this.buildChildrenTree(childNode as TreeNode, markdownUtils);
     }
     return parent;
+  }
+  /**
+   * 获取文件名
+   */
+  public getFileName(node: TreeNode): string {
+    return (
+      encodeURIComponent(node.title)
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim()
+    );
   }
 }

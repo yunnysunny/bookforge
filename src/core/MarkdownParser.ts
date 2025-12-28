@@ -4,7 +4,7 @@ import { copyFile } from 'fs/promises';
 import { marked, type Token, type Tokens, Marked } from 'marked';
 import { dirname, join } from 'path';
 import type { Heading, MarkdownFile } from '../types/index.js';
-import { generateIdFromText, mkdirAsync, readFile } from '../utils';
+import { generateIdFromText, isMarkdownFile, mkdirAsync, readFile } from '../utils';
 import { gitbookExtension } from './marked-plugins/gitbook.plugin.js';
 
 const renderer = new marked.Renderer();
@@ -135,6 +135,17 @@ export class MarkdownParser {
           const imageToDir = dirname(imageToPath);
           await mkdirAsync(imageToDir);
           await copyFile(imageFromPath, imageToPath);
+        } else if (token.type === 'link') {
+          const href = token.href;
+          if (href.startsWith('http') || href.startsWith('https')) {
+            return;
+          }
+          if (!isMarkdownFile(href)) {
+            return;
+          }
+          const decodedHref = decodeURIComponent(href);
+          const linkFromPath = join(dirname(options.contentPath), decodedHref);
+          const linkToPath = join(options.destDir, decodedHref);
         }
       },
     });

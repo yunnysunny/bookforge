@@ -5,8 +5,7 @@ import { isMarkdownFile } from '../../utils';
 import { AbstractParser } from './abstract.parser';
 
 export class GitbookParser extends AbstractParser {
-
-  async parse(input: string): Promise<TreeNode> {
+  async doParse(input: string): Promise<TreeNode> {
     const rootNode: TreeNode = {
       title: 'Root',
       children: [],
@@ -139,6 +138,17 @@ export class GitbookParser extends AbstractParser {
 
     return files;
   }
-
-
+  /**
+   * 获取文件名
+   */
+  public getFileName(node: TreeNode): string {
+    return (
+      encodeURIComponent(node.title)
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim()
+    );
+  }
 }

@@ -3,7 +3,7 @@
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { BookParser } from './core/BookParser.js';
+import { BookParser } from './core/book-parsers/BookParser.js';
 import { HtmlGenerator } from './generators/HtmlGenerator.js';
 import { PdfGenerator } from './generators/PdfGenerator.js';
 import type { GitBookConfig } from './types/index.js';
@@ -128,7 +128,7 @@ async function generateHtml(config: GitBookConfig): Promise<void> {
   });
   const tree = await parser.parseProject(config.input);
 
-  const generator = new HtmlGenerator(config.output);
+  const generator = new HtmlGenerator(config);
   await generator.generate(tree, config.title);
 }
 

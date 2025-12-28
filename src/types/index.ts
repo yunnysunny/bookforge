@@ -32,6 +32,7 @@ export interface GitBookConfig {
 }
 
 export interface ParserOptions {
+  outputDir: string;
   encoding?: string;
   ignorePatterns?: string[];
   parseMode?: ParserMode;

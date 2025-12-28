@@ -6,7 +6,7 @@ export interface MarkdownUtilsOptions {
   ignorePatterns?: string[];
   inputPath: string;
 }
-export class MarkdownRelationUtils {
+export class MarkdownRelationManager {
   private readonly relationManager: RelationManager = new RelationManager();
   public readonly inputPath: string;
   public readonly ignorePatterns?: string[];
@@ -65,7 +65,10 @@ export class MarkdownRelationUtils {
       const link = linkMatch[2];
 
       // 解析链接的 markdown 文件
-      const childPath = join(dirname(markdownFilePath), decodeURIComponent(link));
+      const childPath = join(
+        dirname(markdownFilePath),
+        decodeURIComponent(link),
+      );
       if (!isMarkdownFile(childPath)) {
         continue;
       }

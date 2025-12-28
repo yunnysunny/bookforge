@@ -3,6 +3,7 @@ export type ChildId = string;
 export interface Relation {
   parentId: ParentId;
   childId: ChildId;
+  relativePath: string;
 }
 export class RelationManager {
   private parent2Children: Map<ParentId, ChildId[]>;

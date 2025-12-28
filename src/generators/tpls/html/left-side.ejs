@@ -4,7 +4,7 @@ function generateSidebarItems(nodes, level) {
   for (const node of nodes) {
     const indent = '  '.repeat(level);
     const fileName = node.path
-      ? getFileName(node.title) + '.html'
+      ? getFileName(node) + '.html'
       : 'index.html';
 
     html += `

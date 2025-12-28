@@ -3,11 +3,11 @@
 import { copyFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 // import { fileURLToPath } from 'url';
-import type { Heading, TreeNode } from '../types/index.js';
+import type { GitBookConfig, Heading, TreeNode } from '../types/index.js';
 import { AbstractGenerator } from './AbstractGenerator.js';
 
 export class HtmlGenerator extends AbstractGenerator {
-  protected async generateAssets(tree: TreeNode, title: string): Promise<void> {
+  protected async doGenerate(tree: TreeNode, title: string): Promise<void> {
     // 生成主页面
     await this.generateIndexPage(tree, title);
 
@@ -15,13 +15,13 @@ export class HtmlGenerator extends AbstractGenerator {
     await this.generateDocumentPages(tree);
 
     // 生成样式文件
-    await this.generateStyles();
+    await this.copyStyles();
 
     // 生成脚本文件
-    await this.generateScripts();
+    await this.copyScripts();
   }
-  constructor(outputDir: string) {
-    super(outputDir);
+  constructor(config: GitBookConfig) {
+    super(config);
     this.name = 'html';
   }
 
@@ -54,7 +54,7 @@ export class HtmlGenerator extends AbstractGenerator {
       tree.children.map(async (node) => {
         if (node.content) {
           const html = await this.generateHtmlTemplate(node, tree);
-          const fileName = this.getFileName(node.title) + '.html';
+          const fileName = `${this.getFileName(node)}.html`;
           const filePath = join(this.outputDir, fileName);
           await writeFile(filePath, html, 'utf-8');
           this.logger.info(`Generated document page: ${fileName}`);
@@ -74,13 +74,7 @@ export class HtmlGenerator extends AbstractGenerator {
     const toc = node.headings
       ? await this.generateTableOfContents(node.headings)
       : '';
-    const htmlContent = await this.markdownParser.toHtml(
-      node.content as string,
-      {
-        contentPath: node.path as string,
-        destDir: this.outputDir,
-      },
-    );
+    const htmlContent = await this.bookParser.toHtml(node);
     const html = await this.render('page.ejs', {
       title: node.title,
       sidebar,
@@ -175,14 +169,14 @@ export class HtmlGenerator extends AbstractGenerator {
   /**
    * 生成样式文件
    */
-  private async generateStyles(): Promise<void> {
+  private async copyStyles(): Promise<void> {
     await this.copyFile('styles.css', 'styles.css');
   }
 
   /**
    * 生成脚本文件
    */
-  private async generateScripts(): Promise<void> {
+  private async copyScripts(): Promise<void> {
     await this.copyFile('script.js', 'script.js');
   }
 }
