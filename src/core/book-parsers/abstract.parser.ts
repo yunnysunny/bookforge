@@ -1,7 +1,7 @@
 import { stat } from 'fs/promises';
 import type { MarkdownFile, ParserOptions, TreeNode } from '../../types';
 import { createTempDir, isZipFile, unzipFile } from '../../utils';
-import { MarkdownParser } from '../MarkdownParser';
+import { MarkdownParser } from '../markdown-parser';
 import type { IBookParser } from './interfaces';
 
 export abstract class AbstractParser implements IBookParser {

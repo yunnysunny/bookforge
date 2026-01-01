@@ -6,7 +6,7 @@ import { join } from 'path';
 import type { BookForgeConfig, TreeNode } from '../types';
 import { Tpl } from '../utils/tpl';
 import type { IBookParser } from '../core/book-parsers/interfaces';
-import { getInstance } from '../core/book-parsers/BookParser';
+import { getInstance } from '../core/book-parsers/book-parser-factory';
 
 // const __filename = fileURLToPath(import.meta.url);
 // const __dirname = dirname(__filename);
