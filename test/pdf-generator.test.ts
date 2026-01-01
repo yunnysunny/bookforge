@@ -76,27 +76,29 @@ describe('PdfGenerator', () => {
       expect(puppeteer.launch).toHaveBeenCalledWith({
         headless: true,
         args: [
-          '--no-sandbox', 
-          '--disable-setuid-sandbox', 
-          '--allow-file-access-from-files', 
-          '--disable-web-security'
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--allow-file-access-from-files',
+          '--disable-web-security',
         ],
       });
       expect(mockPage.setContent).toHaveBeenCalled();
-      expect(mockPage.pdf).toHaveBeenCalledWith(expect.objectContaining({
-        path: expect.stringContaining('.pdf'),
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '20mm',
-          bottom: '20mm',
-          left: '20mm',
-        },
-        displayHeaderFooter: true,
-        headerTemplate: '<div></div>',
-        footerTemplate: expect.stringContaining('pageNumber'),
-      }));
+      expect(mockPage.pdf).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: expect.stringContaining('.pdf'),
+          format: 'A4',
+          printBackground: true,
+          margin: {
+            top: '20mm',
+            right: '20mm',
+            bottom: '20mm',
+            left: '20mm',
+          },
+          displayHeaderFooter: true,
+          headerTemplate: '<div></div>',
+          footerTemplate: expect.stringContaining('pageNumber'),
+        }),
+      );
       expect(mockBrowser.close).toHaveBeenCalled();
     });
 

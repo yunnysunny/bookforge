@@ -5,11 +5,12 @@ import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import type { MarkdownFile, ParserOptions, TreeNode } from '../src/types';
 import * as utils from '../src/utils';
 import { GitbookParser } from '../src/core/book-parsers/gitbook.parser';
-import { Stats } from 'fs';
+import type { Stats } from 'fs';
 
 // Mock fs/promises 模块，但提供默认实现调用真实模块
 vi.mock('fs/promises', async () => {
-  const actual = await vi.importActual<typeof import('fs/promises')>('fs/promises');
+  const actual =
+    await vi.importActual<typeof import('fs/promises')>('fs/promises');
   return {
     ...actual,
     readdir: vi.fn(),
@@ -27,7 +28,7 @@ describe('GitbookParser', () => {
     isFile: () => true,
     isDirectory: () => false,
   } as Partial<Stats> as Stats;
-  
+
   const dirStat = {
     isFile: () => false,
     isDirectory: () => true,
@@ -35,11 +36,12 @@ describe('GitbookParser', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     // 恢复 fs/promises 的默认实现
-    const actual = await vi.importActual<typeof import('fs/promises')>('fs/promises');
+    const actual =
+      await vi.importActual<typeof import('fs/promises')>('fs/promises');
     const fsPromisesMock = await import('fs/promises');
     vi.mocked(fsPromisesMock.readdir).mockImplementation(actual.readdir);
     vi.mocked(fsPromisesMock.stat).mockImplementation(actual.stat);
-    
+
     parser = new GitbookParser({
       ...defaultOptions,
     });
@@ -182,7 +184,11 @@ describe('GitbookParser', () => {
         .mockResolvedValueOnce(fileStat); // README.md 是文件
 
       readdirMock
-        .mockResolvedValueOnce(['test.md', 'subdir', 'README.md'] as unknown as any)
+        .mockResolvedValueOnce([
+          'test.md',
+          'subdir',
+          'README.md',
+        ] as unknown as any)
         .mockResolvedValueOnce(['subtest.md'] as unknown as any);
 
       const result = (await (parser as any).getMarkdownFiles(
@@ -205,7 +211,11 @@ describe('GitbookParser', () => {
       readdirMock.mockClear();
       statMock.mockClear();
 
-      readdirMock.mockResolvedValue(['test.txt', 'test.md', 'test.html'] as unknown as any);
+      readdirMock.mockResolvedValue([
+        'test.txt',
+        'test.md',
+        'test.html',
+      ] as unknown as any);
       statMock.mockImplementation(async () => fileStat);
 
       const result = await (parser as any).getMarkdownFiles('./docs');
