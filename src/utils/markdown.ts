@@ -1,7 +1,7 @@
 import { readdir, stat, readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { isMarkdownFile } from '.';
-import { RelationManager } from './relation';
+import { type Child, RelationManager } from './relation';
 export interface MarkdownUtilsOptions {
   ignorePatterns?: string[];
   inputPath: string;
@@ -18,7 +18,7 @@ export class MarkdownRelationManager {
     await this.visitAllMarkdownFiles(this.inputPath);
     return this.relationManager.getTopEntities();
   }
-  public getChildren(parentId: string): string[] {
+  public getChildren(parentId: string): Child[] {
     return this.relationManager.getChildren(parentId);
   }
   /**
@@ -84,6 +84,7 @@ export class MarkdownRelationManager {
       this.relationManager.addRelation({
         parentId: markdownFilePath,
         childId: childPath,
+        relativePath: link,
       });
     }
   }

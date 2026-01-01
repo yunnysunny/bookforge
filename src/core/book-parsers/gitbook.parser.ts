@@ -1,7 +1,7 @@
-import { dirname, join } from 'path';
+import { dirname, join, extname, basename } from 'path';
 import type { TreeNode } from '../../types';
-import { readdir, readFile, stat } from 'fs/promises';
-import { isMarkdownFile } from '../../utils';
+import { readdir, stat } from 'fs/promises';
+import { isMarkdownFile, readFile } from '../../utils';
 import { AbstractParser } from './abstract.parser';
 
 export class GitbookParser extends AbstractParser {
@@ -51,7 +51,7 @@ export class GitbookParser extends AbstractParser {
   ): Promise<void> {
     const content = await readFile(
       entryFilePath,
-      this.options.encoding as BufferEncoding,
+      'utf-8',
     );
     const lines = content.split('\n');
 
@@ -143,12 +143,7 @@ export class GitbookParser extends AbstractParser {
    */
   public getFileName(node: TreeNode): string {
     return (
-      encodeURIComponent(node.title)
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim()
+      basename(node.path as string, extname(node.path as string))
     );
   }
 }

@@ -10,7 +10,7 @@ export abstract class AbstractParser implements IBookParser {
   private _realPath?: string;
   constructor(options: ParserOptions) {
     this.options = options;
-    this.markdownParser = new MarkdownParser();
+    this.markdownParser = new MarkdownParser({ env: options.env });
   }
   public get realPath(): string | undefined {
     return this._realPath;

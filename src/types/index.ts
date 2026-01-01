@@ -21,10 +21,11 @@ export interface TreeNode {
   children: TreeNode[];
 }
 export type ParserMode = 'gitbook' | 'notion';
-export interface GitBookConfig {
+export type Env = 'html' | 'pdf';
+export interface BookForgeConfig {
   input: string;
   output: string;
-  format: 'html' | 'pdf' | 'all';
+  format: Env;
   mode?: ParserMode;
   title?: string;
   author?: string;
@@ -33,7 +34,7 @@ export interface GitBookConfig {
 
 export interface ParserOptions {
   outputDir: string;
-  encoding?: string;
   ignorePatterns?: string[];
   parseMode?: ParserMode;
+  env: Env;
 }

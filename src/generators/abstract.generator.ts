@@ -3,7 +3,7 @@ import { Slogger } from 'node-slogger';
 import { join } from 'path';
 // import { fileURLToPath } from 'url';
 // import { MarkdownParser } from '../core/MarkdownParser';
-import type { GitBookConfig, TreeNode } from '../types';
+import type { BookForgeConfig, TreeNode } from '../types';
 import { Tpl } from '../utils/tpl';
 import type { IBookParser } from '../core/book-parsers/interfaces';
 import { getInstance } from '../core/book-parsers/BookParser';
@@ -18,7 +18,7 @@ export abstract class AbstractGenerator {
   protected logger: Slogger;
   protected bookParser: IBookParser;
   protected title = 'BookForge';
-  constructor(config: GitBookConfig) {
+  constructor(config: BookForgeConfig) {
     this.outputDir = config.output;
     this.input = config.input;
     this.title = config.title || this.title;
@@ -26,10 +26,11 @@ export abstract class AbstractGenerator {
       parseMode: config.mode,
       ignorePatterns: config.skip,
       outputDir: this.outputDir,
+      env: config.format,
     });
     this.logger = new Slogger();
   }
-  protected abstract doGenerate(tree: TreeNode, title: string): Promise<void>;
+  protected abstract doGenerate(treeRoot: TreeNode): Promise<void>;
   protected async render(filename: string, data: any): Promise<string> {
     return await Tpl.renderFileAsync(
       join(__dirname, 'tpls', this.name, filename),
@@ -43,7 +44,7 @@ export abstract class AbstractGenerator {
       mkdirSync(this.outputDir, { recursive: true });
     }
     const tree = await this.bookParser.parse(this.input);
-    await this.doGenerate(tree, this.title);
+    await this.doGenerate(tree);
   }
   /**
    * 获取文件名

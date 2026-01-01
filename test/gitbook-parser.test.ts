@@ -1,27 +1,28 @@
-// GitBookParser 测试
+// GitbookParser 测试
 
-// GitBookParser 测试
-import fs, { readdirSync, readFileSync, statSync } from 'fs';
 import path from 'path';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
-import { GitBookParser } from '../src/core/GitBookParser';
 import type { MarkdownFile, ParserOptions, TreeNode } from '../src/types';
 import * as utils from '../src/utils';
+import { GitbookParser } from '../src/core/book-parsers/gitbook.parser';
+import {readdir, stat} from 'fs/promises';
 
-// 模拟 fs 模块
-// jest.mock('fs');
-
-describe('GitBookParser', () => {
-  let parser: GitBookParser;
-
+describe('GitbookParser', () => {
+  let parser: GitbookParser;
+  const defaultOptions: ParserOptions = {
+    outputDir: './dist',
+    env: 'html'
+  };
   beforeEach(() => {
-    parser = new GitBookParser();
+    parser = new GitbookParser({
+      ...defaultOptions
+    });
     vi.clearAllMocks();
   });
 
-  async function getResult(folder: string, options: ParserOptions = {}) {
-    const parser = new GitBookParser(options);
-    const result = await parser.parseProject(path.join(__dirname, folder));
+  async function getResult(folder: string, options: ParserOptions = defaultOptions) {
+    const parser = new GitbookParser(options);
+    const result = await parser.parse(path.join(__dirname, folder));
     return result;
   }
 
@@ -45,6 +46,7 @@ describe('GitBookParser', () => {
     it('应该忽略指定的目录', async () => {
       const parserWithOptions: ParserOptions = {
         ignorePatterns: ['skipped'],
+        ...defaultOptions,
       };
 
       const result = await getResult('./fixtures/skip-test', parserWithOptions);
@@ -69,43 +71,6 @@ describe('GitBookParser', () => {
       // 应该只包含成功解析的文件
       expect(result.children).toHaveLength(1);
       expect(result.children[0].title).toBe('测试文档');
-    });
-  });
-
-  describe.skip('findEntryFile', () => {
-    it('应该找到 README.md', () => {
-      const result = (parser as any).findEntryFile('./docs');
-
-      expect(result).toBe('./docs/README.md');
-    });
-
-    it('应该找到 SUMMARY.md 当 README.md 不存在时', () => {
-      (statSync as Mock)
-        .mockReturnValueOnce({ isFile: () => false }) // README.md 不存在
-        .mockReturnValueOnce({ isFile: () => true }); // SUMMARY.md 存在
-
-      const result = (parser as any).findEntryFile('./docs');
-
-      expect(result).toBe('./docs/SUMMARY.md');
-    });
-
-    it('应该找到 index.md 当前两个都不存在时', () => {
-      (statSync as Mock)
-        .mockReturnValueOnce({ isFile: () => false }) // README.md 不存在
-        .mockReturnValueOnce({ isFile: () => false }) // SUMMARY.md 不存在
-        .mockReturnValueOnce({ isFile: () => true }); // index.md 存在
-
-      const result = (parser as any).findEntryFile('./docs');
-
-      expect(result).toBe('./docs/index.md');
-    });
-
-    it('应该返回 null 当没有入口文件时', () => {
-      (statSync as Mock).mockReturnValue({ isFile: () => false });
-
-      const result = (parser as any).findEntryFile('./docs');
-
-      expect(result).toBeNull();
     });
   });
 
@@ -175,44 +140,56 @@ describe('GitBookParser', () => {
     });
   });
 
-  describe.skip('getMarkdownFiles', () => {
-    it('应该递归获取所有 markdown 文件', () => {
-      (statSync as Mock)
-        .mockReturnValueOnce({ isDirectory: () => true }) // docs 是目录
-        .mockReturnValueOnce({ isFile: () => true }) // test.md 是文件
-        .mockReturnValueOnce({ isDirectory: () => true }) // subdir 是目录
-        .mockReturnValueOnce({ isFile: () => true }) // subtest.md 是文件
-        .mockReturnValueOnce({ isFile: () => true }); // README.md 是文件
+  describe('getMarkdownFiles', () => {
+    it('应该递归获取所有 markdown 文件', async () => {
+      vi.mock('fs/promises', () => ({
+        readdir: vi.fn(),
+        stat: vi.fn(),
+      }));
+      (stat as Mock)
+        .mockResolvedValueOnce({ isFile: () => true, isDirectory: () => false }) // test.md 是文件
+        .mockResolvedValueOnce({ isFile: () => true, isDirectory: () => true }) // subdir 是目录
+        .mockResolvedValueOnce({ isFile: () => true, isDirectory: () => false }) // subtest.md 是文件
+        .mockResolvedValueOnce({ isFile: () => true, isDirectory: () => false }); // README.md 是文件
 
-      (readdirSync as Mock)
-        .mockReturnValueOnce(['test.md', 'subdir', 'README.md'])
-        .mockReturnValueOnce(['subtest.md']);
+      (readdir as Mock)
+        .mockResolvedValueOnce(['test.md', 'subdir', 'README.md'])
+        .mockResolvedValueOnce(['subtest.md']);
 
-      const result = (parser as any).getMarkdownFiles('./docs');
+      const result = (await(parser as any).getMarkdownFiles('./docs')) as string[];
 
-      expect(result).toEqual([
-        './docs/test.md',
-        './docs/subdir/subtest.md',
-        './docs/README.md',
+      expect(result.map(item => item.replace(/\\/g, '/'))).toEqual([
+        expect.stringContaining('docs/test.md'),
+        expect.stringContaining('docs/subdir/subtest.md'),
+        expect.stringContaining('docs/README.md'),
       ]);
     });
 
-    it('应该忽略非 markdown 文件', () => {
-      (statSync as Mock)
-        .mockReturnValueOnce({ isDirectory: () => true }) // docs 是目录
-        .mockReturnValueOnce({ isFile: () => true }) // test.txt 是文件
-        .mockReturnValueOnce({ isFile: () => true }) // test.md 是文件
-        .mockReturnValueOnce({ isFile: () => true }); // test.html 是文件
+    it('应该忽略非 markdown 文件', async () => {
+      
+      vi.mock('fs/promises', () => ({
+        readdir: vi.fn(),
+        stat: vi.fn(),
+      }));
 
-      (readdirSync as Mock).mockReturnValue([
+      (readdir as Mock).mockResolvedValue([
         'test.txt',
         'test.md',
         'test.html',
       ]);
 
-      const result = (parser as any).getMarkdownFiles('./docs');
+      (stat as Mock).mockImplementation(() =>
+        Promise.resolve({
+          isFile: () => true,
+          isDirectory: () => false,
+        }),
+      );
 
-      expect(result).toEqual(['./docs/test.md']);
+
+      const result = await (parser as any).getMarkdownFiles('./docs');
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toContain('test.md');
     });
   });
 });

@@ -36,16 +36,16 @@ export class NotionParser extends AbstractParser {
   ): Promise<TreeNode> {
     const children = markdownUtils.getChildren(parent.path as string);
     for (const child of children) {
-      if (this.parsedNodes.has(child)) {
+      if (this.parsedNodes.has(child.childId)) {
         continue;
       }
-      this.parsedNodes.add(child);
-      const childNode = await this.markdownFileToTreeNode(child);
+      this.parsedNodes.add(child.childId);
+      const childNode = await this.markdownFileToTreeNode(child.childId);
       if (!childNode) {
         continue;
       }
       parent.children.push(childNode as TreeNode);
-      const subChildren = markdownUtils.getChildren(child);
+      const subChildren = markdownUtils.getChildren(child.childId);
       if (subChildren.length === 0) {
         continue;
       }

@@ -1,21 +1,34 @@
 // PdfGenerator 测试
 import puppeteer from 'puppeteer';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
-import { PdfGenerator } from '../src/generators/PdfGenerator';
-import type { TreeNode } from '../src/types';
+import { type HtmlData, PdfGenerator } from '../src/generators/PdfGenerator';
+import type { BookForgeConfig, TreeNode } from '../src/types';
+import { GitbookParser } from '../src/core/book-parsers/gitbook.parser';
 
 // 模拟 fs 模块
 // jest.mock('fs');
 
 // 模拟 puppeteer
 vi.mock('puppeteer');
-
+interface MockPdfGenerator {
+  generateHtmlContent: (tree: TreeNode) => Promise<string>;
+  generateTableOfContents: (tree: TreeNode) => Promise<string>;
+  generateHtmlData(
+    tree: TreeNode,
+    data: HtmlData[],
+  ): Promise<void>;
+  generateContent(data: HtmlData[]): Promise<string> ;
+}
 describe('PdfGenerator', () => {
   let generator: PdfGenerator;
-  const mockOutputDir = './dist/pdf';
 
+  const defaultConfig: BookForgeConfig = {
+    input: './docs',
+    output: './dist/pdf',
+    format: 'pdf'
+  };
   beforeEach(() => {
-    generator = new PdfGenerator(mockOutputDir);
+    generator = new PdfGenerator(defaultConfig);
     vi.clearAllMocks();
   });
 
@@ -56,8 +69,8 @@ describe('PdfGenerator', () => {
       (mockBrowser.newPage as Mock).mockResolvedValue(mockPage);
       (mockPage.setContent as Mock).mockResolvedValue(undefined);
       (mockPage.pdf as Mock).mockResolvedValue(Buffer.from('PDF content'));
-
-      await generator.generate(mockTree, '测试文档');
+      vi.spyOn(GitbookParser.prototype, 'parse').mockResolvedValue(mockTree);
+      await generator.generate();
 
       // expect(mkdirSync).toHaveBeenCalledWith(mockOutputDir, {
       //   recursive: true,
@@ -106,7 +119,8 @@ describe('PdfGenerator', () => {
       (mockPage.setContent as Mock).mockResolvedValue(undefined);
       (mockPage.pdf as Mock).mockResolvedValue(Buffer.from('PDF content'));
 
-      await generator.generate(mockTree, '空文档');
+      vi.spyOn(GitbookParser.prototype, 'parse').mockResolvedValue(mockTree);
+      await generator.generate();
 
       expect(mockPage.setContent).toHaveBeenCalled();
       expect(mockPage.pdf).toHaveBeenCalled();
@@ -149,7 +163,8 @@ describe('PdfGenerator', () => {
       (mockPage.setContent as Mock).mockResolvedValue(undefined);
       (mockPage.pdf as Mock).mockResolvedValue(Buffer.from('PDF content'));
 
-      await generator.generate(mockTree, '多文档测试');
+      vi.spyOn(GitbookParser.prototype, 'parse').mockResolvedValue(mockTree);
+      await generator.generate();
 
       expect(mockPage.setContent).toHaveBeenCalled();
       expect(mockPage.pdf).toHaveBeenCalled();
@@ -171,9 +186,9 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const html = await (generator as any).generateHtmlContent(
+      
+      const html = await (generator as unknown as MockPdfGenerator).generateHtmlContent(
         mockTree,
-        '测试标题',
       );
 
       expect(html).toContain('<!DOCTYPE html>');
@@ -182,7 +197,7 @@ describe('PdfGenerator', () => {
       expect(html).toContain('<h1>测试标题</h1>');
       expect(html).toContain('<div class="toc">');
       expect(html).toContain('<h2>目录</h2>');
-      expect(html).toContain('<div class="content">');
+      expect(html).toContain('<div class="content-body">');
     });
 
     it('应该包含目录结构', async () => {
@@ -206,9 +221,8 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const html = await (generator as any).generateHtmlContent(
+      const html = await (generator as unknown as MockPdfGenerator).generateHtmlContent(
         mockTree,
-        '测试标题',
       );
 
       expect(html).toContain('文档1');
@@ -236,9 +250,8 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const html = await (generator as any).generateHtmlContent(
+      const html = await (generator as unknown as MockPdfGenerator).generateHtmlContent(
         mockTree,
-        '测试标题',
       );
 
       expect(html).toContain('<div class="page-break"></div>');
@@ -267,7 +280,7 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const toc = await (generator as any).generateTableOfContents(mockTree);
+      const toc = await (generator as unknown as MockPdfGenerator).generateTableOfContents(mockTree);
 
       expect(toc).toContain('<ul class="toc-list">');
       expect(toc).toContain('文档1');
@@ -296,7 +309,7 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const toc = await (generator as any).generateTableOfContents(mockTree);
+      const toc = await (generator as unknown as MockPdfGenerator).generateTableOfContents(mockTree);
 
       expect(toc).toContain('主文档');
       expect(toc).toContain('子文档');
@@ -319,9 +332,12 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const content = await (generator as any).generateContent(mockTree);
+      const htmlData: HtmlData[] = [];
+      const _generator = generator as unknown as MockPdfGenerator;
+      await _generator.generateHtmlData(mockTree, htmlData);
+      const content = await _generator.generateContent(htmlData);
 
-      expect(content).toContain('<div class="content">');
+      expect(content).toContain('<div class="content-body">');
       expect(content).toContain('<h1>测试文档</h1>');
       expect(content).toContain('<h1 id="测试">');
       expect(content).toContain('这是测试内容。');
@@ -346,22 +362,15 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const content = await (generator as any).generateContent(mockTree);
+      const htmlData: HtmlData[] = [];
+      const _generator = generator as unknown as MockPdfGenerator;  
+      await _generator.generateHtmlData(mockTree, htmlData);
+      const content = await _generator.generateContent(htmlData);
 
       expect(content).toContain('有内容的文档');
       expect(content).not.toContain('无内容的文档');
     });
   });
 
-  describe.skip('getFileName', () => {
-    it('应该生成正确的文件名', () => {
-      const fileName1 = (generator as any).getFileName('Hello World');
-      const fileName2 = (generator as any).getFileName('测试标题');
-      const fileName3 = (generator as any).getFileName('Special & Characters!');
 
-      expect(fileName1).toBe('hello-world');
-      expect(fileName2).toBe('测试标题');
-      expect(fileName3).toBe('special-characters');
-    });
-  });
 });

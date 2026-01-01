@@ -99,7 +99,7 @@ body {
     gap: 20px;
 }
 
-.content {
+.content-body {
     flex: 1;
     min-width: 0;
     background: white;
@@ -108,7 +108,7 @@ body {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-.content img {
+.content-body img {
     max-width: 100%;
 }
 
@@ -226,37 +226,37 @@ body {
 .level-3 .toc-link { padding-left: 30px; }
 
 /* Markdown 内容样式 */
-.content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
+.content-body h1, .content-body h2, .content-body h3, .content-body h4, .content-body h5, .content-body h6 {
     margin-top: 30px;
     margin-bottom: 15px;
     color: #2c3e50;
 }
 
-.content h1 { font-size: 2rem; }
-.content h2 { font-size: 1.5rem; }
-.content h3 { font-size: 1.25rem; }
+.content-body h1 { font-size: 2rem; }
+.content-body h2 { font-size: 1.5rem; }
+.content-body h3 { font-size: 1.25rem; }
 
-.content p {
+.content-body p {
     margin-bottom: 15px;
 }
 
-.content ul, .content ol {
+.content-body ul, .content-body ol {
     margin-bottom: 15px;
     padding-left: 30px;
 }
 
-.content li {
+.content-body li {
     margin-bottom: 5px;
 }
 
-.content code {
+.content-body code {
     background-color: #f1f2f6;
     padding: 2px 6px;
     border-radius: 3px;
     font-family: 'Monaco', 'Consolas', monospace;
 }
 
-.content pre {
+.content-body pre {
     background-color: #2c3e50;
     color: #ecf0f1;
     padding: 20px;
@@ -265,13 +265,13 @@ body {
     margin-bottom: 20px;
 }
 
-.content pre code {
+.content-body pre code {
     background: none;
     padding: 0;
     color: inherit;
 }
 
-.content blockquote {
+.content-body blockquote {
     border-left: 4px solid #3498db;
     padding-left: 20px;
     margin: 20px 0;
@@ -279,19 +279,19 @@ body {
     font-style: italic;
 }
 
-.content table {
+.content-body table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
 }
 
-.content th, .content td {
+.content-body th, .content-body td {
     border: 1px solid #ddd;
     padding: 12px;
     text-align: left;
 }
 
-.content th {
+.content-body th {
     background-color: #f8f9fa;
     font-weight: 600;
 }
@@ -357,7 +357,7 @@ body {
         flex-direction: column;
     }
     
-    .content {
+    .content-body {
         order: 2;
     }
     

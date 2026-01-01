@@ -14,7 +14,7 @@
     "dev": "tsc --watch",
     "start": "tsx src/cli.ts",
     "start:html": "tsx src/cli.ts html --input ./docs --output ./examples/html",
-    "start:html:notion": "tsx src/cli.ts html --input ./zip/notion0.zip --output ./examples/html --mode notion",
+    "start:notion": "tsx src/cli.ts all --input ./zip/notion0.zip --output ./examples --mode notion",
     "start:pdf": "tsx src/cli.ts pdf --input ./docs --output ./examples/pdf",
     "start:all": "tsx src/cli.ts all --input ./docs --output ./examples",
     "start:single": "tsx src/cli.ts html --input ./test/fixtures/single --output ./examples/single",
