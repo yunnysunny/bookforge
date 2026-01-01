@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   MarkdownParser,
   type MarkdownParserOptions,
-} from '../src/core/MarkdownParser';
+} from '../src/core/markdown-parser';
 import * as utils from '../src/utils';
 import type { Heading } from '../src/types';
 interface MockMarkdownParser {

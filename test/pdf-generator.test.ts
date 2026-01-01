@@ -1,7 +1,7 @@
 // PdfGenerator 测试
 import puppeteer from 'puppeteer';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
-import { type HtmlData, PdfGenerator } from '../src/generators/PdfGenerator';
+import { type HtmlData, PdfGenerator } from '../src/generators/pdf.generator';
 import type { BookForgeConfig, TreeNode } from '../src/types';
 import { GitbookParser } from '../src/core/book-parsers/gitbook.parser';
 

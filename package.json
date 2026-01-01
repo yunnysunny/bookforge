@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "build:all": "tsc -p tsconfig.json",
     "postbuild": "cpx \"src/generators/{tpls,static}/**/*\" dist/generators",
     "dev": "tsc --watch",
     "start": "tsx src/cli.ts",
