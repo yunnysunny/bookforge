@@ -1,7 +1,6 @@
 // 主入口文件
-export { GitBookParser } from './core/GitBookParser';
-export { MarkdownParser } from './core/MarkdownParser';
-export { HtmlGenerator } from './generators/HtmlGenerator';
-export { PdfGenerator } from './generators/PdfGenerator';
+export { MarkdownParser } from './core/markdown-parser';
+export { HtmlGenerator } from './generators/html.generator';
+export { PdfGenerator } from './generators/pdf.generator';
 export * from './types';
 export * from './utils';

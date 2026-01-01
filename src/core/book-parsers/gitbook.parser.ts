@@ -1,39 +1,22 @@
-// GitBook 解析器
-import { readdirSync, statSync } from 'fs';
-import { dirname, join } from 'path';
-import type { MarkdownFile, ParserOptions, TreeNode } from '../types';
-import { isMarkdownFile, readFile } from '../utils';
-import { MarkdownParser } from './MarkdownParser';
+import { dirname, join, extname, basename } from 'path';
+import type { TreeNode } from '../../types';
+import { readdir, stat } from 'fs/promises';
+import { isMarkdownFile, readFile } from '../../utils';
+import { AbstractParser } from './abstract.parser';
 
-export class GitBookParser {
-  private markdownParser: MarkdownParser;
-  private options: ParserOptions;
-
-  constructor(options: ParserOptions = {}) {
-    this.markdownParser = new MarkdownParser();
-    this.options = {
-      encoding: 'utf-8',
-      ignorePatterns: ['node_modules', '.git', 'dist', 'build'],
-      ...options,
-    };
-  }
-
-  /**
-   * 解析 GitBook 项目
-   */
-  async parseProject(inputPath: string): Promise<TreeNode> {
+export class GitbookParser extends AbstractParser {
+  async doParse(input: string): Promise<TreeNode> {
     const rootNode: TreeNode = {
       title: 'Root',
       children: [],
     };
-
     // 查找入口文件
-    const entryFile = this.findEntryFile(inputPath);
+    const entryFile = await this.findEntryFile(input);
     if (entryFile) {
       await this.parseEntryFile(entryFile, rootNode);
     } else {
       // 如果没有找到入口文件，扫描所有 markdown 文件
-      await this.scanMarkdownFiles(inputPath, rootNode);
+      await this.scanMarkdownFiles(input, rootNode);
     }
 
     return rootNode;
@@ -42,13 +25,13 @@ export class GitBookParser {
   /**
    * 查找入口文件（README.md, SUMMARY.md, index.md）
    */
-  private findEntryFile(inputPath: string): string | null {
+  private async findEntryFile(inputPath: string): Promise<string | null> {
     const entryFiles = ['README.md', 'SUMMARY.md', 'index.md'];
 
     for (const fileName of entryFiles) {
       const filePath = join(inputPath, fileName);
       try {
-        if (statSync(filePath).isFile()) {
+        if ((await stat(filePath)).isFile()) {
           return filePath;
         }
       } catch (error) {
@@ -66,10 +49,7 @@ export class GitBookParser {
     entryFilePath: string,
     rootNode: TreeNode,
   ): Promise<void> {
-    const content = await readFile(
-      entryFilePath,
-      this.options.encoding as BufferEncoding,
-    );
+    const content = await readFile(entryFilePath, 'utf-8');
     const lines = content.split('\n');
 
     for (const line of lines) {
@@ -105,7 +85,7 @@ export class GitBookParser {
     inputPath: string,
     rootNode: TreeNode,
   ): Promise<void> {
-    const files = this.getMarkdownFiles(inputPath);
+    const files = await this.getMarkdownFiles(inputPath);
 
     for (const filePath of files) {
       const markdownFile = await this.parseMarkdownFile(filePath);
@@ -125,17 +105,17 @@ export class GitBookParser {
   /**
    * 获取所有 markdown 文件
    */
-  private getMarkdownFiles(dirPath: string): string[] {
+  private async getMarkdownFiles(dirPath: string): Promise<string[]> {
     const files: string[] = [];
 
     try {
-      const items = readdirSync(dirPath);
+      const items = await readdir(dirPath);
 
       for (const item of items) {
         const itemPath = join(dirPath, item);
-        const stat = statSync(itemPath);
+        const fileStat = await stat(itemPath);
 
-        if (stat.isDirectory()) {
+        if (fileStat.isDirectory()) {
           // 跳过忽略的目录
           if (
             this.options.ignorePatterns?.some((pattern) =>
@@ -144,8 +124,8 @@ export class GitBookParser {
           ) {
             continue;
           }
-          files.push(...this.getMarkdownFiles(itemPath));
-        } else if (stat.isFile() && isMarkdownFile(item)) {
+          files.push(...(await this.getMarkdownFiles(itemPath)));
+        } else if (fileStat.isFile() && isMarkdownFile(item)) {
           files.push(itemPath);
         }
       }
@@ -155,18 +135,10 @@ export class GitBookParser {
 
     return files;
   }
-
   /**
-   * 解析单个 markdown 文件
+   * 获取文件名
    */
-  private async parseMarkdownFile(
-    filePath: string,
-  ): Promise<MarkdownFile | null> {
-    try {
-      return await this.markdownParser.parseFile(filePath);
-    } catch (error) {
-      console.warn(`解析文件失败: ${filePath}`, error);
-      return null;
-    }
+  public getFileName(node: TreeNode): string {
+    return basename(node.path as string, extname(node.path as string));
   }
 }

@@ -1,0 +1,14 @@
+{
+    "[javascript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "javascript.preferences.quoteStyle": "single",
+    "typescript.preferences.quoteStyle": "single",
+    "editor.formatOnSave": true,
+    "cSpell.words": [
+        "gitbook",
+    ]
+}

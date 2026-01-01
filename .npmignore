@@ -6,4 +6,5 @@ test/
 biome.json
 tsconfig.build.json
 tsconfig.json
+zip/
 

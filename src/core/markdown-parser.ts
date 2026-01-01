@@ -1,10 +1,17 @@
 // Markdown 解析器
 
 import { copyFile } from 'fs/promises';
-import { marked, type Token, type Tokens } from 'marked';
-import { dirname, join } from 'path';
-import type { Heading, MarkdownFile } from '../types/index.js';
-import { generateIdFromText, mkdirAsync, readFile } from '../utils';
+import { marked, type Token, type Tokens, Marked } from 'marked';
+import { basename, dirname, extname, join } from 'path';
+import type { Env, Heading, MarkdownFile } from '../types/index.js';
+import {
+  generateIdFromText,
+  isMarkdownFile,
+  mkdirAsync,
+  readFile,
+} from '../utils';
+import { gitbookExtension } from './marked-plugins/gitbook.plugin.js';
+import { pathToFileURL } from 'url';
 
 const renderer = new marked.Renderer();
 renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
@@ -15,16 +22,27 @@ renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
   ${token.text}
 </h${depth}>`;
 };
-export class MarkdownParser {
-  private marked: typeof marked;
 
-  constructor() {
-    this.marked = marked;
+export interface MarkdownParserOptions {
+  env: Env;
+}
+export interface ToHTMLOptions {
+  contentPath: string;
+  destDir: string;
+}
+export class MarkdownParser {
+  private marked: Marked;
+  private readonly env: Env;
+
+  constructor(options: MarkdownParserOptions) {
+    this.env = options.env;
+    this.marked = new Marked();
     this.marked.setOptions({
       gfm: true,
       breaks: true,
       renderer,
     });
+    this.marked.use(gitbookExtension);
   }
 
   /**
@@ -104,17 +122,22 @@ export class MarkdownParser {
     return 'Untitled';
   }
 
+  private async copyResource(src: string, options: ToHTMLOptions) {
+    const decodedSrc = decodeURIComponent(src);
+    const imageFromPath = join(dirname(options.contentPath), decodedSrc);
+    const imageToPath = join(options.destDir, decodedSrc);
+    const imageToDir = dirname(imageToPath);
+    await mkdirAsync(imageToDir);
+    await copyFile(imageFromPath, imageToPath);
+    return imageToPath;
+  }
+
   /**
    * 将 markdown 转换为 HTML
    */
-  async toHtml(
-    content: string,
-    options: {
-      contentPath: string;
-      destDir: string;
-    },
-  ): Promise<string> {
-    const html = await this.marked(content, {
+  async toHtml(content: string, options: ToHTMLOptions): Promise<string> {
+    const html = await this.marked.parse(content, {
+      async: true,
       walkTokens: async (token: Token) => {
         if (token.type === 'image') {
           const src = token.href;
@@ -127,11 +150,25 @@ export class MarkdownParser {
           ) {
             return;
           }
-          const imageFromPath = join(dirname(options.contentPath), src);
-          const imageToPath = join(options.destDir, src);
-          const imageToDir = dirname(imageToPath);
-          await mkdirAsync(imageToDir);
-          await copyFile(imageFromPath, imageToPath);
+          const imageToPath = await this.copyResource(src, options);
+          if (this.env === 'pdf') {
+            const buffer = await readFile(imageToPath, 'base64');
+            const ext = extname(imageToPath).slice(1);
+            token.href = `data:image/${ext};base64,${buffer}`;
+          }
+        } else if (token.type === 'link') {
+          const href = token.href;
+          if (href.startsWith('http') || href.startsWith('https')) {
+            return;
+          }
+          if (!isMarkdownFile(href)) {
+            await this.copyResource(href, options);
+            return;
+          }
+          const path = dirname(href);
+          const filename = basename(href, extname(href));
+          const link = `${path}/${filename}.html`;
+          token.href = link;
         }
       },
     });

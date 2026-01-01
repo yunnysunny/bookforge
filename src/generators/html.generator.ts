@@ -3,45 +3,41 @@
 import { copyFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 // import { fileURLToPath } from 'url';
-import type { Heading, TreeNode } from '../types/index.js';
-import { AbstractGenerator } from './AbstractGenerator.js';
+import type { BookForgeConfig, Heading, TreeNode } from '../types/index.js';
+import { AbstractGenerator } from './abstract.generator.js';
 
 export class HtmlGenerator extends AbstractGenerator {
-  protected async generateAssets(tree: TreeNode, title: string): Promise<void> {
+  private sidebar: string = '';
+  protected async doGenerate(treeRoot: TreeNode): Promise<void> {
+    this.sidebar = await this.generateSidebar(treeRoot);
     // 生成主页面
-    await this.generateIndexPage(tree, title);
+    await this.generateIndexPage(treeRoot);
 
     // 生成各个文档页面
-    await this.generateDocumentPages(tree);
+    await this.generateDocumentPages(treeRoot);
 
     // 生成样式文件
-    await this.generateStyles();
+    await this.copyStyles();
 
     // 生成脚本文件
-    await this.generateScripts();
+    await this.copyScripts();
   }
-  constructor(outputDir: string) {
-    super(outputDir);
+  constructor(config: BookForgeConfig) {
+    super(config);
     this.name = 'html';
   }
 
   /**
    * 生成主页面
    */
-  private async generateIndexPage(
-    tree: TreeNode,
-    title: string,
-  ): Promise<void> {
-    const html = await this.generateHtmlTemplate(
-      {
-        title,
-        path: tree.children[0]?.path as string,
-        content: tree.children[0]?.content || '',
-        headings: tree.children[0]?.headings || [],
-        children: tree.children[0]?.children || [],
-      },
-      tree,
-    );
+  private async generateIndexPage(tree: TreeNode): Promise<void> {
+    const html = await this.generateSinglePageHtml({
+      title: this.title,
+      path: tree.children[0]?.path as string,
+      content: tree.children[0]?.content || '',
+      headings: tree.children[0]?.headings || [],
+      children: tree.children[0]?.children || [],
+    });
     const indexPath = join(this.outputDir, 'index.html');
     await writeFile(indexPath, html, 'utf-8');
   }
@@ -49,15 +45,18 @@ export class HtmlGenerator extends AbstractGenerator {
   /**
    * 生成文档页面
    */
-  private async generateDocumentPages(tree: TreeNode): Promise<void> {
+  private async generateDocumentPages(treeRoot: TreeNode): Promise<void> {
     await Promise.all(
-      tree.children.map(async (node) => {
+      treeRoot.children.map(async (node) => {
         if (node.content) {
-          const html = await this.generateHtmlTemplate(node, tree);
-          const fileName = this.getFileName(node.title) + '.html';
+          const html = await this.generateSinglePageHtml(node);
+          const fileName = `${this.getFileName(node)}.html`;
           const filePath = join(this.outputDir, fileName);
           await writeFile(filePath, html, 'utf-8');
           this.logger.info(`Generated document page: ${fileName}`);
+        }
+        if (node.children.length > 0) {
+          await this.generateDocumentPages(node);
         }
       }),
     );
@@ -66,24 +65,14 @@ export class HtmlGenerator extends AbstractGenerator {
   /**
    * 生成 HTML 模板
    */
-  private async generateHtmlTemplate(
-    node: TreeNode,
-    tree: TreeNode,
-  ): Promise<string> {
-    const sidebar = await this.generateSidebar(tree);
+  private async generateSinglePageHtml(node: TreeNode): Promise<string> {
     const toc = node.headings
       ? await this.generateTableOfContents(node.headings)
       : '';
-    const htmlContent = await this.markdownParser.toHtml(
-      node.content as string,
-      {
-        contentPath: node.path as string,
-        destDir: this.outputDir,
-      },
-    );
+    const htmlContent = await this.bookParser.toHtml(node);
     const html = await this.render('page.ejs', {
       title: node.title,
-      sidebar,
+      sidebar: this.sidebar,
       toc,
       htmlContent,
     });
@@ -128,8 +117,9 @@ export class HtmlGenerator extends AbstractGenerator {
     const html = await this.render('left-side.ejs', {
       nodes,
       level,
-      getFileName: this.getFileName,
+      getFileName: this.getFileName.bind(this),
     });
+    // console.log(nodes.map(node => node.title), '-->', html);
     return html;
   }
 
@@ -175,14 +165,14 @@ export class HtmlGenerator extends AbstractGenerator {
   /**
    * 生成样式文件
    */
-  private async generateStyles(): Promise<void> {
+  private async copyStyles(): Promise<void> {
     await this.copyFile('styles.css', 'styles.css');
   }
 
   /**
    * 生成脚本文件
    */
-  private async generateScripts(): Promise<void> {
+  private async copyScripts(): Promise<void> {
     await this.copyFile('script.js', 'script.js');
   }
 }

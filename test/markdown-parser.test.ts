@@ -1,14 +1,23 @@
 // MarkdownParser 测试
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { MarkdownParser } from '../src/core/MarkdownParser';
+import {
+  MarkdownParser,
+  type MarkdownParserOptions,
+} from '../src/core/markdown-parser';
 import * as utils from '../src/utils';
-
+import type { Heading } from '../src/types';
+interface MockMarkdownParser {
+  extractHeadings(content: string): Heading[];
+}
 describe('MarkdownParser', () => {
   let parser: MarkdownParser;
 
+  const defaultOptions: MarkdownParserOptions = {
+    env: 'html',
+  };
   beforeEach(() => {
-    parser = new MarkdownParser();
+    parser = new MarkdownParser(defaultOptions);
     vi.clearAllMocks();
   });
 
@@ -166,7 +175,9 @@ console.log('Hello World');
 ##### H5
 ###### H6`;
 
-      const headings = (parser as any).extractHeadings(content);
+      const headings = (
+        parser as unknown as MockMarkdownParser
+      ).extractHeadings(content);
 
       expect(headings).toHaveLength(1);
       expect(headings[0].level).toBe(1);
@@ -178,7 +189,9 @@ console.log('Hello World');
 
     it('应该处理标题前后的空格', () => {
       const content = `#   标题前后有空格   `;
-      const headings = (parser as any).extractHeadings(content);
+      const headings = (
+        parser as unknown as MockMarkdownParser
+      ).extractHeadings(content);
 
       expect(headings[0].text).toBe('标题前后有空格');
     });
@@ -187,7 +200,9 @@ console.log('Hello World');
       const content = `# 
 ## 
 ### `;
-      const headings = (parser as any).extractHeadings(content);
+      const headings = (
+        parser as unknown as MockMarkdownParser
+      ).extractHeadings(content);
 
       expect(headings).toHaveLength(0);
     });
