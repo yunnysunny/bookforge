@@ -5,22 +5,25 @@ import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import type { MarkdownFile, ParserOptions, TreeNode } from '../src/types';
 import * as utils from '../src/utils';
 import { GitbookParser } from '../src/core/book-parsers/gitbook.parser';
-import {readdir, stat} from 'fs/promises';
+import { readdir, stat } from 'fs/promises';
 
 describe('GitbookParser', () => {
   let parser: GitbookParser;
   const defaultOptions: ParserOptions = {
     outputDir: './dist',
-    env: 'html'
+    env: 'html',
   };
   beforeEach(() => {
     parser = new GitbookParser({
-      ...defaultOptions
+      ...defaultOptions,
     });
     vi.clearAllMocks();
   });
 
-  async function getResult(folder: string, options: ParserOptions = defaultOptions) {
+  async function getResult(
+    folder: string,
+    options: ParserOptions = defaultOptions,
+  ) {
     const parser = new GitbookParser(options);
     const result = await parser.parse(path.join(__dirname, folder));
     return result;
@@ -150,15 +153,20 @@ describe('GitbookParser', () => {
         .mockResolvedValueOnce({ isFile: () => true, isDirectory: () => false }) // test.md 是文件
         .mockResolvedValueOnce({ isFile: () => true, isDirectory: () => true }) // subdir 是目录
         .mockResolvedValueOnce({ isFile: () => true, isDirectory: () => false }) // subtest.md 是文件
-        .mockResolvedValueOnce({ isFile: () => true, isDirectory: () => false }); // README.md 是文件
+        .mockResolvedValueOnce({
+          isFile: () => true,
+          isDirectory: () => false,
+        }); // README.md 是文件
 
       (readdir as Mock)
         .mockResolvedValueOnce(['test.md', 'subdir', 'README.md'])
         .mockResolvedValueOnce(['subtest.md']);
 
-      const result = (await(parser as any).getMarkdownFiles('./docs')) as string[];
+      const result = (await (parser as any).getMarkdownFiles(
+        './docs',
+      )) as string[];
 
-      expect(result.map(item => item.replace(/\\/g, '/'))).toEqual([
+      expect(result.map((item) => item.replace(/\\/g, '/'))).toEqual([
         expect.stringContaining('docs/test.md'),
         expect.stringContaining('docs/subdir/subtest.md'),
         expect.stringContaining('docs/README.md'),
@@ -166,17 +174,12 @@ describe('GitbookParser', () => {
     });
 
     it('应该忽略非 markdown 文件', async () => {
-      
       vi.mock('fs/promises', () => ({
         readdir: vi.fn(),
         stat: vi.fn(),
       }));
 
-      (readdir as Mock).mockResolvedValue([
-        'test.txt',
-        'test.md',
-        'test.html',
-      ]);
+      (readdir as Mock).mockResolvedValue(['test.txt', 'test.md', 'test.html']);
 
       (stat as Mock).mockImplementation(() =>
         Promise.resolve({
@@ -184,7 +187,6 @@ describe('GitbookParser', () => {
           isDirectory: () => false,
         }),
       );
-
 
       const result = await (parser as any).getMarkdownFiles('./docs');
 

@@ -13,11 +13,8 @@ vi.mock('puppeteer');
 interface MockPdfGenerator {
   generateHtmlContent: (tree: TreeNode) => Promise<string>;
   generateTableOfContents: (tree: TreeNode) => Promise<string>;
-  generateHtmlData(
-    tree: TreeNode,
-    data: HtmlData[],
-  ): Promise<void>;
-  generateContent(data: HtmlData[]): Promise<string> ;
+  generateHtmlData(tree: TreeNode, data: HtmlData[]): Promise<void>;
+  generateContent(data: HtmlData[]): Promise<string>;
 }
 describe('PdfGenerator', () => {
   let generator: PdfGenerator;
@@ -25,7 +22,7 @@ describe('PdfGenerator', () => {
   const defaultConfig: BookForgeConfig = {
     input: './docs',
     output: './dist/pdf',
-    format: 'pdf'
+    format: 'pdf',
   };
   beforeEach(() => {
     generator = new PdfGenerator(defaultConfig);
@@ -186,10 +183,9 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      
-      const html = await (generator as unknown as MockPdfGenerator).generateHtmlContent(
-        mockTree,
-      );
+      const html = await (
+        generator as unknown as MockPdfGenerator
+      ).generateHtmlContent(mockTree);
 
       expect(html).toContain('<!DOCTYPE html>');
       expect(html).toContain('<title>测试标题</title>');
@@ -221,9 +217,9 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const html = await (generator as unknown as MockPdfGenerator).generateHtmlContent(
-        mockTree,
-      );
+      const html = await (
+        generator as unknown as MockPdfGenerator
+      ).generateHtmlContent(mockTree);
 
       expect(html).toContain('文档1');
       expect(html).toContain('文档2');
@@ -250,9 +246,9 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const html = await (generator as unknown as MockPdfGenerator).generateHtmlContent(
-        mockTree,
-      );
+      const html = await (
+        generator as unknown as MockPdfGenerator
+      ).generateHtmlContent(mockTree);
 
       expect(html).toContain('<div class="page-break"></div>');
     });
@@ -280,7 +276,9 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const toc = await (generator as unknown as MockPdfGenerator).generateTableOfContents(mockTree);
+      const toc = await (
+        generator as unknown as MockPdfGenerator
+      ).generateTableOfContents(mockTree);
 
       expect(toc).toContain('<ul class="toc-list">');
       expect(toc).toContain('文档1');
@@ -309,7 +307,9 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const toc = await (generator as unknown as MockPdfGenerator).generateTableOfContents(mockTree);
+      const toc = await (
+        generator as unknown as MockPdfGenerator
+      ).generateTableOfContents(mockTree);
 
       expect(toc).toContain('主文档');
       expect(toc).toContain('子文档');
@@ -363,7 +363,7 @@ describe('PdfGenerator', () => {
       };
 
       const htmlData: HtmlData[] = [];
-      const _generator = generator as unknown as MockPdfGenerator;  
+      const _generator = generator as unknown as MockPdfGenerator;
       await _generator.generateHtmlData(mockTree, htmlData);
       const content = await _generator.generateContent(htmlData);
 
@@ -371,6 +371,4 @@ describe('PdfGenerator', () => {
       expect(content).not.toContain('无内容的文档');
     });
   });
-
-
 });

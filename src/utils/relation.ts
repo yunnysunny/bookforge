@@ -24,7 +24,7 @@ export class RelationManager {
   getTopEntities(): ParentId[] {
     const map = new Map(this.parent2Children);
     for (const [_, children] of map.entries()) {
-      children.forEach(child => {
+      children.forEach((child) => {
         map.delete(child.childId);
       });
     }
@@ -34,4 +34,3 @@ export class RelationManager {
     return this.parent2Children.get(parentId) || [];
   }
 }
-

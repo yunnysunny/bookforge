@@ -49,10 +49,7 @@ export class GitbookParser extends AbstractParser {
     entryFilePath: string,
     rootNode: TreeNode,
   ): Promise<void> {
-    const content = await readFile(
-      entryFilePath,
-      'utf-8',
-    );
+    const content = await readFile(entryFilePath, 'utf-8');
     const lines = content.split('\n');
 
     for (const line of lines) {
@@ -142,8 +139,6 @@ export class GitbookParser extends AbstractParser {
    * 获取文件名
    */
   public getFileName(node: TreeNode): string {
-    return (
-      basename(node.path as string, extname(node.path as string))
-    );
+    return basename(node.path as string, extname(node.path as string));
   }
 }

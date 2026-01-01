@@ -4,7 +4,12 @@ import { copyFile } from 'fs/promises';
 import { marked, type Token, type Tokens, Marked } from 'marked';
 import { basename, dirname, extname, join } from 'path';
 import type { Env, Heading, MarkdownFile } from '../types/index.js';
-import { generateIdFromText, isMarkdownFile, mkdirAsync, readFile } from '../utils';
+import {
+  generateIdFromText,
+  isMarkdownFile,
+  mkdirAsync,
+  readFile,
+} from '../utils';
 import { gitbookExtension } from './marked-plugins/gitbook.plugin.js';
 import { pathToFileURL } from 'url';
 
@@ -130,10 +135,7 @@ export class MarkdownParser {
   /**
    * 将 markdown 转换为 HTML
    */
-  async toHtml(
-    content: string,
-    options: ToHTMLOptions,
-  ): Promise<string> {
+  async toHtml(content: string, options: ToHTMLOptions): Promise<string> {
     const html = await this.marked.parse(content, {
       async: true,
       walkTokens: async (token: Token) => {
@@ -165,7 +167,7 @@ export class MarkdownParser {
           }
           const path = dirname(href);
           const filename = basename(href, extname(href));
-          const link= `${path}/${filename}.html`;
+          const link = `${path}/${filename}.html`;
           token.href = link;
         }
       },

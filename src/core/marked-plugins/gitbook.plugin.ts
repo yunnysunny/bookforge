@@ -25,7 +25,6 @@ const gitbookTagRenderers: Record<
       text,
     )}</div>`,
   tabs: (text) => `<div class="gb-tabs">${marked.parse(text)}</div>`,
-
 };
 
 // ========================
@@ -81,4 +80,3 @@ export const gitbookExtension: MarkedExtension = {
     },
   ],
 };
-

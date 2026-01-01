@@ -57,13 +57,11 @@ export class NotionParser extends AbstractParser {
    * 获取文件名
    */
   public getFileName(node: TreeNode): string {
-    return (
-      encodeURIComponent(node.title)
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim()
-    );
+    return encodeURIComponent(node.title)
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
   }
 }
