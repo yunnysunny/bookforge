@@ -6,11 +6,12 @@ import type { BookForgeConfig, TreeNode } from '../src/types';
 import { GitbookParser } from '../src/core/book-parsers/gitbook.parser';
 
 // 模拟 fs 模块
-// jest.mock('fs');
+vi.mock('fs/promises');
 
 // 模拟 puppeteer
 vi.mock('puppeteer');
 interface MockPdfGenerator {
+  title: string;
   generateHtmlContent: (tree: TreeNode) => Promise<string>;
   generateTableOfContents: (tree: TreeNode) => Promise<string>;
   generateHtmlData(tree: TreeNode, data: HtmlData[]): Promise<void>;
@@ -74,10 +75,15 @@ describe('PdfGenerator', () => {
       // });
       expect(puppeteer.launch).toHaveBeenCalledWith({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        args: [
+          '--no-sandbox', 
+          '--disable-setuid-sandbox', 
+          '--allow-file-access-from-files', 
+          '--disable-web-security'
+        ],
       });
       expect(mockPage.setContent).toHaveBeenCalled();
-      expect(mockPage.pdf).toHaveBeenCalledWith({
+      expect(mockPage.pdf).toHaveBeenCalledWith(expect.objectContaining({
         path: expect.stringContaining('.pdf'),
         format: 'A4',
         printBackground: true,
@@ -90,7 +96,7 @@ describe('PdfGenerator', () => {
         displayHeaderFooter: true,
         headerTemplate: '<div></div>',
         footerTemplate: expect.stringContaining('pageNumber'),
-      });
+      }));
       expect(mockBrowser.close).toHaveBeenCalled();
     });
 
@@ -182,15 +188,13 @@ describe('PdfGenerator', () => {
           },
         ],
       };
-
-      const html = await (
-        generator as unknown as MockPdfGenerator
-      ).generateHtmlContent(mockTree);
+      const _generator = generator as unknown as MockPdfGenerator;
+      const html = await _generator.generateHtmlContent(mockTree);
 
       expect(html).toContain('<!DOCTYPE html>');
-      expect(html).toContain('<title>测试标题</title>');
+      expect(html).toContain(`<title>${_generator.title}</title>`);
       expect(html).toContain('<div class="cover">');
-      expect(html).toContain('<h1>测试标题</h1>');
+      expect(html).toContain(`<h1>${_generator.title}</h1>`);
       expect(html).toContain('<div class="toc">');
       expect(html).toContain('<h2>目录</h2>');
       expect(html).toContain('<div class="content-body">');

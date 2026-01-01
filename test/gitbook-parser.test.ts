@@ -5,7 +5,17 @@ import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import type { MarkdownFile, ParserOptions, TreeNode } from '../src/types';
 import * as utils from '../src/utils';
 import { GitbookParser } from '../src/core/book-parsers/gitbook.parser';
-import { readdir, stat } from 'fs/promises';
+import { Stats } from 'fs';
+
+// Mock fs/promises 模块，但提供默认实现调用真实模块
+vi.mock('fs/promises', async () => {
+  const actual = await vi.importActual<typeof import('fs/promises')>('fs/promises');
+  return {
+    ...actual,
+    readdir: vi.fn(),
+    stat: vi.fn(),
+  };
+});
 
 describe('GitbookParser', () => {
   let parser: GitbookParser;
@@ -13,11 +23,26 @@ describe('GitbookParser', () => {
     outputDir: './dist',
     env: 'html',
   };
-  beforeEach(() => {
+  const fileStat = {
+    isFile: () => true,
+    isDirectory: () => false,
+  } as Partial<Stats> as Stats;
+  
+  const dirStat = {
+    isFile: () => false,
+    isDirectory: () => true,
+  } as Partial<Stats> as Stats;
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    // 恢复 fs/promises 的默认实现
+    const actual = await vi.importActual<typeof import('fs/promises')>('fs/promises');
+    const fsPromisesMock = await import('fs/promises');
+    vi.mocked(fsPromisesMock.readdir).mockImplementation(actual.readdir);
+    vi.mocked(fsPromisesMock.stat).mockImplementation(actual.stat);
+    
     parser = new GitbookParser({
       ...defaultOptions,
     });
-    vi.clearAllMocks();
   });
 
   async function getResult(
@@ -145,22 +170,20 @@ describe('GitbookParser', () => {
 
   describe('getMarkdownFiles', () => {
     it('应该递归获取所有 markdown 文件', async () => {
-      vi.mock('fs/promises', () => ({
-        readdir: vi.fn(),
-        stat: vi.fn(),
-      }));
-      (stat as Mock)
-        .mockResolvedValueOnce({ isFile: () => true, isDirectory: () => false }) // test.md 是文件
-        .mockResolvedValueOnce({ isFile: () => true, isDirectory: () => true }) // subdir 是目录
-        .mockResolvedValueOnce({ isFile: () => true, isDirectory: () => false }) // subtest.md 是文件
-        .mockResolvedValueOnce({
-          isFile: () => true,
-          isDirectory: () => false,
-        }); // README.md 是文件
+      const fsPromisesMock = await import('fs/promises');
+      const readdirMock = vi.mocked(fsPromisesMock.readdir);
+      const statMock = vi.mocked(fsPromisesMock.stat);
 
-      (readdir as Mock)
-        .mockResolvedValueOnce(['test.md', 'subdir', 'README.md'])
-        .mockResolvedValueOnce(['subtest.md']);
+      // 设置 mock 返回值
+      statMock
+        .mockResolvedValueOnce(fileStat) // test.md 是文件
+        .mockResolvedValueOnce(dirStat) // subdir 是目录
+        .mockResolvedValueOnce(fileStat) // subtest.md 是文件
+        .mockResolvedValueOnce(fileStat); // README.md 是文件
+
+      readdirMock
+        .mockResolvedValueOnce(['test.md', 'subdir', 'README.md'] as unknown as any)
+        .mockResolvedValueOnce(['subtest.md'] as unknown as any);
 
       const result = (await (parser as any).getMarkdownFiles(
         './docs',
@@ -174,19 +197,16 @@ describe('GitbookParser', () => {
     });
 
     it('应该忽略非 markdown 文件', async () => {
-      vi.mock('fs/promises', () => ({
-        readdir: vi.fn(),
-        stat: vi.fn(),
-      }));
+      const fsPromisesMock = await import('fs/promises');
+      const readdirMock = vi.mocked(fsPromisesMock.readdir);
+      const statMock = vi.mocked(fsPromisesMock.stat);
 
-      (readdir as Mock).mockResolvedValue(['test.txt', 'test.md', 'test.html']);
+      // 清理之前的 mock
+      readdirMock.mockClear();
+      statMock.mockClear();
 
-      (stat as Mock).mockImplementation(() =>
-        Promise.resolve({
-          isFile: () => true,
-          isDirectory: () => false,
-        }),
-      );
+      readdirMock.mockResolvedValue(['test.txt', 'test.md', 'test.html'] as unknown as any);
+      statMock.mockImplementation(async () => fileStat);
 
       const result = await (parser as any).getMarkdownFiles('./docs');
 
