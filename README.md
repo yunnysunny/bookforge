@@ -1,6 +1,8 @@
 # GitBook 解析器
 
-一个用于解析 gitbook markdown 文件并生成 HTML 网站或 PDF 文件的工具。
+一个用于解析 markdown 文件并生成 HTML 网站或 PDF 文件的工具。
+
+![preview](./docs/images/preview.png)
 
 ## 功能特性
 
