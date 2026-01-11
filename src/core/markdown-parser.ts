@@ -179,6 +179,9 @@ export class MarkdownParser {
             token.text = `<pre class="mermaid">
 ${diagram}
 </pre>`;
+          } else if (!codeToken.lang) {
+            // 如果没有指定语言，设置为 plain text
+            codeToken.lang = 'plain';
           }
         }
       },

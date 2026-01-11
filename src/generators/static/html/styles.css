@@ -257,7 +257,7 @@ body {
 }
 
 .content-body pre {
-    color: #ecf0f1;
+    color: #464d4e;
     padding: 20px;
     border-radius: 5px;
     overflow-x: auto;
@@ -329,24 +329,36 @@ body {
     transition: transform 0.3s ease;
 }
 /* gitbook 样式 */
-/* 提示框 */
-.gb-note {
+.gb-hint {
     padding: 12px;
     border-left: 4px solid #448aff;
-    background: #ecf5ff;
     border-radius: 4px;
+    margin-bottom: 16px;
+  }
+/* 提示框 */
+.gb-note {
+    border-left: 4px solid #448aff;
+    background: #ecf5ff;
   }
   
-  .gb-hint {
-    padding: 12px;
+  .gb-success {
     border-left: 4px solid #4caf50;
     background: #e8f5e9;
-    border-radius: 4px;
   }
   
-  .gb-hint.info {
+  .gb-info {
     border-color: #2196f3;
     background: #e3f2fd;
+  }
+
+  .gb-warning {
+    border-left: 4px solid #ff9800;
+    background: #fff3e0;
+  }
+
+  .gb-danger {
+    border-left: 4px solid #f44336;
+    background: #ffebee;
   }
   
 

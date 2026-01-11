@@ -8,21 +8,7 @@ const gitbookTagRenderers: Record<
   (text: string, params: Record<string, string>) => string
 > = {
   // Callout
-  note: (text) => `<div class="gb-note">${marked.parse(text)}</div>`,
-  warning: (text) => `<div class="gb-warning">${marked.parse(text)}</div>`,
-  tip: (text) => `<div class="gb-tip">${marked.parse(text)}</div>`,
-  info: (text) => `<div class="gb-info">${marked.parse(text)}</div>`,
-  danger: (text) => `<div class="gb-danger">${marked.parse(text)}</div>`,
-  success: (text) => `<div class="gb-success">${marked.parse(text)}</div>`,
-
-  // code block
-  codeblock: (text, params) => {
-    if (params.lang === 'mermaid') {
-      return `<pre class="mermaid">${text}</pre>`;
-    }
-    return `<pre><code class="language-${params.lang || ''}">${text}</code></pre>`;
-  },
-
+  hint: (text, params) => `<div class="gb-hint gb-${params.style || 'info'}">${marked.parse(text)}</div>`,
   // tabs / tab
   tab: (text, params) =>
     `<div class="gb-tab" data-title="${params.title || ''}">${marked.parse(
@@ -59,10 +45,10 @@ export const gitbookExtension: MarkedExtension = {
       name: 'gb-tag',
       level: 'block',
       start(src: string) {
-        return src.match(/\{%/)?.index;
+        return src.indexOf('{%');
       },
       tokenizer(src: string): GitbookTagToken | undefined {
-        const rule = /^\{% (\w+)(.*?) %\}([\s\S]*?)\{% end\1 %\}/;
+        const rule = /^\{%\s*(\w+)([\s\S]*?)%\}([\s\S]*?)\{%\s*end\1\s*%\}/;
         const match = rule.exec(src);
         if (!match) return;
 
