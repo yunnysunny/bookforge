@@ -2,7 +2,6 @@
 import katex from 'katex';
 import { marked, type MarkedExtension, type Tokens } from 'marked';
 
-
 interface KatexToken extends Tokens.Generic {
   type: 'katex';
   raw: string;
