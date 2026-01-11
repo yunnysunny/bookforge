@@ -18,7 +18,7 @@ interface KatexToken extends Tokens.Generic {
   displayMode: boolean;
 }
 // 优化后的行内正则：匹配 $公式$，确保不匹配空公式 $$
-const inlineRule = /^\$((?:[^\$\n\\]|\\.)+?)\$/;
+const inlineRule = /^\$((?:[^$\n\\]|\\.)+?)\$/;
 // 优化后的块级正则：匹配被 $$ 包围的内容
 const blockRule = /^(\s*)\$\$([\s\S]+?)\$\$(\s*)/;
 // KaTeX 渲染函数
@@ -91,7 +91,7 @@ export const katexExtension: MarkedExtension = {
 
         // 2. 匹配行内公式 $ ... $
         // 使用更严谨的正则，防止匹配到空内容或由于零宽字符导致的失败
-        const inlineMatch = src.match(/^\$((?:[^\$\n\\]|\\.)+?)\$/);
+        const inlineMatch = src.match(/^\$((?:[^$\n\\]|\\.)+?)\$/);
         if (inlineMatch) {
           return {
             type: 'katex',

@@ -57,7 +57,7 @@ export abstract class AbstractGenerator {
     // 复制公共资源文件
     await cp(path.join(__dirname, 'static/common'), this.outputDir, {
       recursive: true,
-      force: true,   // 覆盖已有文件
+      force: true, // 覆盖已有文件
     });
   }
 }

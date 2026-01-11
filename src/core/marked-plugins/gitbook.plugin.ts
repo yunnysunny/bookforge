@@ -20,7 +20,7 @@ const gitbookTagRenderers: Record<
     if (params.lang === 'mermaid') {
       return `<pre class="mermaid">${text}</pre>`;
     }
-    return `<pre><code class="language-${params.lang || ''}">${text}</code></pre>`
+    return `<pre><code class="language-${params.lang || ''}">${text}</code></pre>`;
   },
 
   // tabs / tab
