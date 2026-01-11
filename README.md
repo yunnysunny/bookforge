@@ -14,6 +14,8 @@
 - 📄 生成 PDF 文件
 - 🔍 支持 gitbook 标签
 - 💡 支持语法高亮
+- 📈 支持 mermaid 图形
+- 🧮 支持 latex 公式
 
 
 ## 安装
@@ -57,7 +59,7 @@ pnpm test
 
 ## TODO
 - [x] 支持notion导出压缩包解析
-- [ ] 支持 mermaid 语法
+- [x] 支持 mermaid 语法
 
 ## 许可证
 

@@ -159,7 +159,7 @@ export class HtmlGenerator extends AbstractGenerator {
     return html;
   }
   private async copyFile(src: string, dest: string): Promise<void> {
-    await copyFile(join(__dirname, 'static', src), join(this.outputDir, dest));
+    await copyFile(join(__dirname, 'static/html', src), join(this.outputDir, dest));
   }
 
   /**

@@ -16,8 +16,12 @@ const gitbookTagRenderers: Record<
   success: (text) => `<div class="gb-success">${marked.parse(text)}</div>`,
 
   // code block
-  codeblock: (text, params) =>
-    `<pre><code class="language-${params.lang || ''}">${text}</code></pre>`,
+  codeblock: (text, params) => {
+    if (params.lang === 'mermaid') {
+      return `<pre class="mermaid">${text}</pre>`;
+    }
+    return `<pre><code class="language-${params.lang || ''}">${text}</code></pre>`
+  },
 
   // tabs / tab
   tab: (text, params) =>

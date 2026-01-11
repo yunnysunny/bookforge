@@ -53,6 +53,7 @@
     "chalk": "^5.6.2",
     "commander": "^14.0.2",
     "ejs": "^3.1.10",
+    "katex": "^0.16.27",
     "marked": "^17.0.0",
     "node-slogger": "^3.0.0",
     "puppeteer": "^24.30.0",
@@ -61,6 +62,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.6",
     "@types/ejs": "^3.1.5",
+    "@types/katex": "^0.16.8",
     "@types/node": "^24.10.1",
     "@types/unzipper": "^0.10.11",
     "@vitest/coverage-v8": "^4.0.12",

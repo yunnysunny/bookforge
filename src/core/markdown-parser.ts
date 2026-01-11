@@ -11,7 +11,7 @@ import {
   readFile,
 } from '../utils';
 import { gitbookExtension } from './marked-plugins/gitbook.plugin.js';
-import { pathToFileURL } from 'url';
+import { katexExtension } from './marked-plugins/katex.plugin.js';
 
 const renderer = new marked.Renderer();
 renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
@@ -43,6 +43,7 @@ export class MarkdownParser {
       renderer,
     });
     this.marked.use(gitbookExtension);
+    this.marked.use(katexExtension);
   }
 
   /**
@@ -169,6 +170,16 @@ export class MarkdownParser {
           const filename = basename(href, extname(href));
           const link = `${path}/${filename}.html`;
           token.href = link;
+        } else if (token.type === 'code') {
+          // 处理 mermaid 代码块
+          const codeToken = token as Tokens.Code;
+          if (codeToken.lang === 'mermaid') {
+            const diagram = codeToken.text;
+            token.type = 'html';
+            token.text = `<pre class="mermaid">
+${diagram}
+</pre>`;
+          }
         }
       },
     });

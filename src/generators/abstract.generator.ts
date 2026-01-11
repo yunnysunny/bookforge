@@ -1,12 +1,13 @@
 import { existsSync, mkdirSync } from 'fs';
 import { Slogger } from 'node-slogger';
-import { join } from 'path';
+import path, { join } from 'path';
 // import { fileURLToPath } from 'url';
 // import { MarkdownParser } from '../core/MarkdownParser';
 import type { BookForgeConfig, TreeNode } from '../types';
 import { Tpl } from '../utils/tpl';
 import type { IBookParser } from '../core/book-parsers/interfaces';
 import { getInstance } from '../core/book-parsers/book-parser-factory';
+import { cp } from 'fs/promises';
 
 // const __filename = fileURLToPath(import.meta.url);
 // const __dirname = dirname(__filename);
@@ -51,5 +52,12 @@ export abstract class AbstractGenerator {
    */
   protected getFileName(node: TreeNode): string {
     return this.bookParser.getFileName(node);
+  }
+  protected async copyCommonResources(): Promise<void> {
+    // 复制公共资源文件
+    await cp(path.join(__dirname, 'static/common'), this.outputDir, {
+      recursive: true,
+      force: true,   // 覆盖已有文件
+    });
   }
 }
