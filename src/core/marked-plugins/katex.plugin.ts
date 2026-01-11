@@ -2,25 +2,14 @@
 import katex from 'katex';
 import { marked, type MarkedExtension, type Tokens } from 'marked';
 
-// 扩展 marked 的默认选项
-// interface MarkedKatexOptions extends marked.MarkedOptions {
-//   katex?: {
-//     throwOnError?: boolean;
-//     errorColor?: string;
-//     displayMode?: boolean;
-//     macros?: Record<string, string>;
-//   };
-// }
+
 interface KatexToken extends Tokens.Generic {
-  type: 'katex-inline' | 'katex-block';
+  type: 'katex';
   raw: string;
   formula: string;
   displayMode: boolean;
 }
-// 优化后的行内正则：匹配 $公式$，确保不匹配空公式 $$
-const inlineRule = /^\$((?:[^$\n\\]|\\.)+?)\$/;
-// 优化后的块级正则：匹配被 $$ 包围的内容
-const blockRule = /^(\s*)\$\$([\s\S]+?)\$\$(\s*)/;
+
 // KaTeX 渲染函数
 function renderKatex(expression: string, displayMode: boolean = false): string {
   try {
@@ -37,30 +26,6 @@ function renderKatex(expression: string, displayMode: boolean = false): string {
 // 创建扩展
 export const katexExtension: MarkedExtension = {
   extensions: [
-    // 块级公式 $$...$$
-    // {
-    //   name: 'katex-block',
-    //   level: 'block',
-    //   start(src: string) {
-    //     const i = src.indexOf('$$');
-    //     return i === -1 ? undefined : i;
-    //   },
-    //   tokenizer(src: string) {
-    //     const m = src.match(blockRule);
-    //     if (m) {
-    //       return {
-    //         type: 'katex-block',
-    //         raw: m[0],
-    //         formula: m[2].trim(),
-    //         displayMode: true,
-    //       };
-    //     }
-    //   },
-    //   renderer(token: Tokens.Generic) {
-    //     return renderKatex((token as KatexToken).formula, true);
-    //   },
-    // },
-    // 行内公式 $...$
     {
       name: 'katex',
       level: 'inline',
@@ -68,16 +33,7 @@ export const katexExtension: MarkedExtension = {
         const idx = src.indexOf('$');
         return idx === -1 ? undefined : idx;
       },
-      tokenizer(src: string) {
-        // const m = src.match(inlineRule);
-        // if (m) {
-        //   return {
-        //     type: 'katex-inline',
-        //     raw: m[0],
-        //     formula: m[1].trim(),
-        //     displayMode: false,
-        //   };
-        // }
+      tokenizer(src: string): KatexToken | undefined {
         // 1. 优先匹配块级公式 $$ ... $$
         const blockMatch = src.match(/^\s*\$\$([\s\S]+?)\$\$/);
         if (blockMatch) {
@@ -102,20 +58,9 @@ export const katexExtension: MarkedExtension = {
         }
       },
       renderer(token: Tokens.Generic) {
-        return renderKatex((token as KatexToken).formula, false);
+        const _token = token as KatexToken;
+        return renderKatex(_token.formula, _token.displayMode);
       },
     },
   ],
 };
-
-// // 扩展 marked 的配置类型
-// declare module 'marked' {
-//   interface MarkedOptions {
-//     katex?: {
-//       throwOnError?: boolean;
-//       errorColor?: string;
-//       displayMode?: boolean;
-//       macros?: Record<string, string>;
-//     };
-//   }
-// }
