@@ -8,7 +8,8 @@ const gitbookTagRenderers: Record<
   (text: string, params: Record<string, string>) => string
 > = {
   // Callout
-  hint: (text, params) => `<div class="gb-hint gb-${params.style || 'info'}">${marked.parse(text)}</div>`,
+  hint: (text, params) =>
+    `<div class="gb-hint gb-${params.style || 'info'}">${marked.parse(text)}</div>`,
   // tabs / tab
   tab: (text, params) =>
     `<div class="gb-tab" data-title="${params.title || ''}">${marked.parse(

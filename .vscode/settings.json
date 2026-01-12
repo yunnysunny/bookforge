@@ -9,6 +9,7 @@
     "typescript.preferences.quoteStyle": "single",
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSaveMode": "file",
     "editor.codeActionsOnSave": {
         "source.fixAll.biome": "always"
     },
