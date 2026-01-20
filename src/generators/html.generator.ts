@@ -71,6 +71,7 @@ export class HtmlGenerator extends AbstractGenerator {
       : '';
     const htmlContent = await this.bookParser.toHtml(node);
     const html = await this.render('page.ejs', {
+      bookTitle: this.title,
       title: node.title,
       sidebar: this.sidebar,
       toc,
