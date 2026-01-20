@@ -120,4 +120,87 @@ document.addEventListener('DOMContentLoaded', function() {
         // 初始化
         initToc();
     }
+    
+    // 搜索功能
+    const searchInput = document.getElementById('searchInput');
+    
+    if (searchInput) {
+        let searchTimeout;
+        
+        // 搜索功能
+        function performSearch() {
+            const query = searchInput.value.trim().toLowerCase();
+            
+            // 在当前页面内容中搜索
+            const contentBody = document.querySelector('.content-body');
+            if (!contentBody) {
+                return;
+            }
+            
+            // 移除之前的高亮
+            const highlightedElements = contentBody.querySelectorAll('.search-highlight');
+            highlightedElements.forEach(el => {
+                const parent = el.parentNode;
+                parent.replaceChild(document.createTextNode(el.textContent), el);
+                parent.normalize();
+            });
+            
+            // 如果搜索词为空，不执行搜索
+            if (query === '') {
+                return;
+            }
+            
+            // 搜索并高亮
+            const walker = document.createTreeWalker(
+                contentBody,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            
+            const textNodes = [];
+            let node;
+            while (node = walker.nextNode()) {
+                if (node.textContent.toLowerCase().includes(query)) {
+                    textNodes.push(node);
+                }
+            }
+            
+            // 高亮匹配的文本
+            textNodes.forEach(textNode => {
+                const text = textNode.textContent;
+                const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                const highlightedText = text.replace(regex, '<mark class="search-highlight">$1</mark>');
+                
+                if (highlightedText !== text) {
+                    const wrapper = document.createElement('span');
+                    wrapper.innerHTML = highlightedText;
+                    textNode.parentNode.replaceChild(wrapper, textNode);
+                    
+                    
+                }
+            });
+            // 滚动到第一个匹配项
+            const firstMatch = document.querySelector('mark');
+            if (firstMatch) {
+                firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+        
+        // 绑定搜索事件 - 使用防抖优化性能
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(performSearch, 300); // 300ms 防抖
+        });
+        
+        // 按回车键立即搜索
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                performSearch();
+            }
+        });
+    }
+    
+
 });

@@ -9,15 +9,30 @@
     <link href="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/katex.min.css" rel="stylesheet">
 </head>
 <body>
-    <button class="sidebar-toggle" id="sidebarToggle" aria-label="切换侧边栏">
-        <span class="toggle-icon">☰</span>
-    </button>
+    <!-- 顶部菜单栏 -->
+    <header class="top-navbar">
+        <div class="navbar-left">
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="切换侧边栏">
+                <span class="toggle-icon">☰</span>
+            </button>
+            <h1 class="navbar-title"><%= bookTitle %></h1>
+        </div>
+        <div class="navbar-right">
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" class="search-input" placeholder="搜索..." aria-label="搜索">
+            </div>
+            <nav class="navbar-nav">
+                <a href="index.html" class="nav-link active">首页</a>
+            </nav>
+        </div>
+    </header>
     
     <div class="container">
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h1><%= bookTitle %></h1>
-            </div>
+            <!-- <div class="sidebar-header"> -->
+                <!-- <h1><%= bookTitle %></h1> -->
+            <!-- </div> -->
             <nav class="sidebar-nav">
                 <%- sidebar %>
             </nav>

@@ -10,11 +10,116 @@ body {
     line-height: 1.6;
     color: #333;
     background-color: #f8f9fa;
+    padding-top: 60px; /* 为顶部菜单栏留出空间 */
+}
+
+/* 顶部菜单栏样式 */
+.top-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: #2c3e50;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.navbar-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.search-icon {
+    font-size: 16px;
+    color: #95a5a6;
+    pointer-events: none;
+    position: absolute;
+    left: 12px;
+    z-index: 1;
+}
+
+.search-input {
+    padding: 8px 12px 8px 36px;
+    border: 1px solid #34495e;
+    border-radius: 4px;
+    background-color: #34495e;
+    color: white;
+    font-size: 0.9rem;
+    width: 200px;
+    transition: all 0.3s ease;
+}
+
+.search-input::placeholder {
+    color: #95a5a6;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #3498db;
+    background-color: #34495e;
+    width: 250px;
+}
+
+.search-input:focus + .search-icon,
+.search-container:focus-within .search-icon {
+    color: #3498db;
+}
+
+.navbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 0 0 4px 0;
+    border-bottom: 2px solid #3498db;
+    transition: color 0.3s ease, border-color 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.nav-link:hover {
+    color: #3498db;
+    border-bottom-color: #3498db;
+}
+
+.nav-link.active {
+    color: white;
+    border-bottom: 2px solid #3498db;
 }
 
 .container {
     display: flex;
-    min-height: 100vh;
+    min-height: calc(100vh - 60px);
 }
 
 .sidebar {
@@ -23,9 +128,9 @@ body {
     color: white;
     overflow-y: auto;
     position: fixed;
-    height: 100vh;
+    height: calc(100vh - 60px);
     left: 0;
-    top: 0;
+    top: 60px;
     transition: transform 0.3s ease-in-out;
     z-index: 100;
 }
@@ -40,6 +145,11 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    min-height: 60px;
+}
+
+.sidebar-header:empty {
+    display: none;
 }
 
 .sidebar-header h1 {
@@ -297,27 +407,23 @@ body {
 
 /* 侧边栏切换按钮 */
 .sidebar-toggle {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 1000;
-    background: rgba(44, 62, 80, 0.9);
+    background: transparent;
     color: white;
     border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 18px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 20px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    width: 36px;
+    height: 36px;
 }
 
 .sidebar-toggle:hover {
-    background: rgba(44, 62, 80, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-toggle:active {
@@ -361,6 +467,13 @@ body {
     background: #ffebee;
   }
   
+/* 搜索高亮样式 */
+.search-highlight {
+    background-color: #ffeb3b;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+}
 
 /* 响应式设计 - 中等屏幕：TOC显示在内容上方 */
 @media (max-width: 1024px) {
@@ -382,7 +495,30 @@ body {
 
 /* 响应式设计 - 小屏幕 */
 @media (max-width: 768px) {
+    body {
+        padding-top: 60px;
+    }
+    
+    .top-navbar {
+        height: 60px;
+        padding: 0 10px;
+    }
+    
+    .navbar-title {
+        font-size: 1rem;
+    }
+    
+    .search-input {
+        width: 150px;
+    }
+    
+    .search-input:focus {
+        width: 180px;
+    }
+    
     .sidebar {
+        top: 60px;
+        height: calc(100vh - 60px);
         transform: translateX(-100%);
     }
     
@@ -403,7 +539,7 @@ body {
         width: 50px;
         position: fixed;
         right: 20px;
-        top: 20px;
+        top: 80px;
         z-index: 999;
         padding: 10px;
     }
@@ -415,6 +551,6 @@ body {
     }
     
     .sidebar-toggle {
-        display: block;
+        display: flex;
     }
 }
