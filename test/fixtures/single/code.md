@@ -12,13 +12,11 @@
 import { existsSync, mkdirSync } from 'fs';
 import { Slogger } from 'node-slogger';
 import path, { join } from 'path';
-// import { MarkdownParser } from '../core/MarkdownParser';
 import type { BookForgeConfig, TreeNode } from '../types';
 import { Tpl } from '../utils/tpl';
 import type { IBookParser } from '../core/book-parsers/interfaces';
 import { getInstance } from '../core/book-parsers/book-parser-factory';
 import { cp } from 'fs/promises';
-
 
 export abstract class AbstractGenerator {
   protected outputDir: string;
@@ -48,7 +46,6 @@ export abstract class AbstractGenerator {
     const tree = await this.bookParser.parse(this.input);
     await this.doGenerate(tree);
   }
-
 }
 
 ```
@@ -104,7 +101,7 @@ $$
 唯一需要注意的是：
 
 {% hint style="note" %}
-> 使用 ESM `import { marked }`
+使用 ESM `import { marked }`
 {% endhint %}
 
 {% hint style="warning" %}
@@ -120,3 +117,27 @@ $$
 > 👉 这套写法是 **官方推荐 + 长期稳定** 的。
 {% endhint %}
 
+## gitbook 标签组
+
+{% tabs %}
+
+{% tab title="Windows" %} Here are the instructions for Windows {% endtab %}
+
+{% tab title="OSX" %} Here are the instructions for macOS {% endtab %}
+
+{% tab title="Linux" %} Here are the instructions for Linux {% endtab %}
+
+{% endtabs %}
+
+## gitbook 步骤条
+
+{% stepper %}
+{% step %}
+### 步骤 1 标题
+步骤 1 文本
+{% endstep %}
+{% step %}
+### 步骤 2 标题
+步骤 2 文本
+{% endstep %}
+{% endstepper %}

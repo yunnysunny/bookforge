@@ -1,43 +1,24 @@
-import { marked, type MarkedExtension, type Tokens } from 'marked';
+import type { RendererThis, MarkedExtension, Tokens } from 'marked';
+import { parseParams } from '../../utils/gitbook';
+import type {
+  GitbookTagTokenBase,
+  RenderFun,
+} from './interfaces/gitbook.interface';
 
 // ========================
-// 1. GitBook 标签渲染器
+// 1. GitBook 普通标签渲染器
 // ========================
-const gitbookTagRenderers: Record<
-  string,
-  (text: string, params: Record<string, string>) => string
-> = {
+const gitbookTagRenderers: Record<string, RenderFun> = {
   // Callout
-  hint: (text, params) =>
-    `<div class="gb-hint gb-${params.style || 'info'}">${marked.parse(text)}</div>`,
+  hint: ({ innerHtml, params }) =>
+    `<div class="gb-hint gb-${params.style || 'info'}">${innerHtml}</div>`,
   // tabs / tab
-  tab: (text, params) =>
-    `<div class="gb-tab" data-title="${params.title || ''}">${marked.parse(
-      text,
-    )}</div>`,
-  tabs: (text) => `<div class="gb-tabs">${marked.parse(text)}</div>`,
+  // tab: ({innerHtml, params}) =>
+  //   `<div class="gb-tab" data-title="${params.title || ''}">${innerHtml}</div>`,
+  // tabs: ({innerHtml}) => `<div class="gb-tabs">${innerHtml}</div>`,
 };
 
-// ========================
-// 2. 解析参数 key="value"
-// ========================
-/** 解析 GitBook 参数，如 style="info" lang="ts" */
-function parseParams(str: string) {
-  const params: Record<string, string> = {};
-  const re = /(\w+)="(.*?)"/g;
-  let m: RegExpExecArray | null = null;
-  while (true) {
-    m = re.exec(str);
-    if (!m) break;
-    params[m[1]] = m[2];
-  }
-  return params;
-}
-interface GitbookTagToken extends Tokens.Generic {
-  tag: string;
-  params: Record<string, string>;
-  text: string;
-  raw: string;
+interface GitbookCommonTagToken extends GitbookTagTokenBase {
   type: 'gb-tag';
 }
 export const gitbookExtension: MarkedExtension = {
@@ -48,25 +29,30 @@ export const gitbookExtension: MarkedExtension = {
       start(src: string) {
         return src.indexOf('{%');
       },
-      tokenizer(src: string): GitbookTagToken | undefined {
+      tokenizer(this, src: string): GitbookCommonTagToken | undefined {
         const rule = /^\{%\s*(\w+)([\s\S]*?)%\}([\s\S]*?)\{%\s*end\1\s*%\}/;
         const match = rule.exec(src);
         if (!match) return;
 
         const [, tag, paramStr, content] = match;
+        const tokens = this.lexer.blockTokens(content);
         return {
           type: 'gb-tag',
           raw: match[0],
           tag,
           params: parseParams(paramStr),
           text: content.trim(),
+          tokens,
         };
       },
-      renderer(token: Tokens.Generic) {
-        const _token = token as GitbookTagToken;
+      renderer(this: RendererThis<string, string>, token: Tokens.Generic) {
+        const _token = token as GitbookCommonTagToken;
         const fn = gitbookTagRenderers[_token.tag];
-        if (fn) return fn(_token.text, _token.params);
-        return _token.raw; // 未知标签原样输出
+        if (!fn) {
+          return _token.raw;
+        }
+        const innerHtml = this.parser.parse(_token.tokens);
+        return fn({ innerHtml, params: _token.params });
       },
     },
   ],

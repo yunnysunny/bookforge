@@ -202,5 +202,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    const tabs = document.querySelectorAll('.tab')
+    const panels = document.querySelectorAll('.tab-panel')
 
+    tabs.forEach((tab, i) => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'))
+            panels.forEach(p => p.classList.remove('active'))
+
+            tab.classList.add('active')
+            panels[i].classList.add('active')
+        })
+    })
 });

@@ -445,27 +445,170 @@ body {
 .gb-note {
     border-left: 4px solid #448aff;
     background: #ecf5ff;
-  }
-  
-  .gb-success {
+}
+
+.gb-success {
     border-left: 4px solid #4caf50;
     background: #e8f5e9;
-  }
-  
-  .gb-info {
+}
+
+.gb-info {
     border-color: #2196f3;
     background: #e3f2fd;
-  }
+}
 
-  .gb-warning {
+.gb-warning {
     border-left: 4px solid #ff9800;
     background: #fff3e0;
-  }
+}
 
-  .gb-danger {
+.gb-danger {
     border-left: 4px solid #f44336;
     background: #ffebee;
+}
+
+.gb-tabs {
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
   }
+  
+  /* tab 顶部区域 */
+  .tabs-header {
+    display: flex;
+    align-items: center;
+    background: #f7f7f7;
+    /* padding: 6px;
+    border-bottom: 1px solid #e5e5e5; */
+  }
+  
+  /* 单个 tab */
+  .tab {
+    appearance: none;
+    border: none;
+    background: transparent;
+    padding: 8px 16px;
+    margin-right: 4px;
+    font-size: 15px;
+    color: #666;
+    cursor: pointer;
+    /* border-radius: 8px; */
+    position: relative;
+  }
+  
+  /* tab 分隔线（非第一个） */
+  .tab:not(:first-child)::before {
+    content: "";
+    position: absolute;
+    left: -2px;
+    top: 25%;
+    bottom: 25%;
+    width: 1px;
+    background: #ddd;
+  }
+  
+  /* 选中 tab */
+  .tab.active {
+    background: #fff;
+    color: #111;
+    /* font-weight: 500; */
+    /* box-shadow: 0 1px 2px rgba(0,0,0,0.05); */
+  }
+  
+  /* 内容区域 */
+  .tabs-body {
+    padding: 24px;
+  }
+  
+  /* 面板 */
+  .tab-panel {
+    display: none;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #111;
+  }
+  
+  .tab-panel.active {
+    display: block;
+  }
+
+  /* stepper 样式 */
+  .gb-stepper {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    margin: 24px 0;
+  }
+  
+  .step {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+    padding-bottom: 24px;
+  }
+  
+  .step:last-child {
+    padding-bottom: 0;
+  }
+  
+  /* 左侧标记区域 */
+  .step-marker {
+    position: relative;
+    width: 48px;
+    min-width: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-shrink: 0;
+  }
+  
+  /* 圆形数字 */
+  .step-number {
+    width: 36px;
+    height: 36px;
+    background: #ff6a21;
+    color: #fff;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+  }
+  
+  /* 竖向连线 */
+  .step-line {
+    position: absolute;
+    left: 50%;
+    top: 36px;
+    transform: translateX(-50%);
+    width: 2px;
+    height: calc(100% + 12px);
+    background: rgba(255, 106, 33, 0.35);
+    z-index: 1;
+  }
+  
+  /* 右侧内容 */
+  .step-content {
+    flex: 1;
+    padding-left: 16px;
+    padding-top: 0;
+    min-width: 0;
+  }
+  
+  .step-content > *:first-child {
+    margin-top: 0;
+  }
+  
+  .step-content > *:last-child {
+    margin-bottom: 0;
+  }
+  
   
 /* 搜索高亮样式 */
 .search-highlight {

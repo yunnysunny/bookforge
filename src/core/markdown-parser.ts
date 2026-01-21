@@ -12,6 +12,8 @@ import {
 } from '../utils';
 import { gitbookExtension } from './marked-plugins/gitbook.plugin.js';
 import { katexExtension } from './marked-plugins/katex.plugin.js';
+import { gitbookTabExtension } from './marked-plugins/gitbook-tab.plugin.js';
+import { gitbookStepperExtension } from './marked-plugins/gitbook-stepper.plugin.js';
 
 const renderer = new marked.Renderer();
 renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
@@ -43,6 +45,8 @@ export class MarkdownParser {
       renderer,
     });
     this.marked.use(gitbookExtension);
+    this.marked.use(gitbookTabExtension);
+    this.marked.use(gitbookStepperExtension);
     this.marked.use(katexExtension);
   }
 
