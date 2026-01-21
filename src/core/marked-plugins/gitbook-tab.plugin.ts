@@ -1,10 +1,8 @@
 import type { RendererThis, MarkedExtension, Tokens } from 'marked';
 
-
-
 interface TabItem {
-  title: string
-  content: string
+  title: string;
+  content: string;
   tokens: Tokens.Generic[];
 }
 interface GitbookTabsToken extends Tokens.Generic {
@@ -28,7 +26,7 @@ export const gitbookTabExtension: MarkedExtension = {
         const [, content] = match;
 
         const tabRegex =
-    /\{%\s*tab\s+title="([^"]+)"\s*%\}([\s\S]*?)\{%\s*endtab\s*%\}/g;
+          /\{%\s*tab\s+title="([^"]+)"\s*%\}([\s\S]*?)\{%\s*endtab\s*%\}/g;
         const tabItems: TabItem[] = [];
         let matchTab: RegExpExecArray | null = tabRegex.exec(content);
         while (matchTab !== null) {
@@ -39,7 +37,7 @@ export const gitbookTabExtension: MarkedExtension = {
           });
           matchTab = tabRegex.exec(content);
         }
-        
+
         return {
           type: 'gb-tabs',
           tag: 'tabs',
@@ -54,23 +52,23 @@ export const gitbookTabExtension: MarkedExtension = {
         }
         return `<div class="gb-tabs">
           <div class="tabs-header">
-          ${
-            tabItems.map((item, index) => {
-              return `<div class="tab${index === 0 ? ' active' : ''}">${item.title}</div>`
-            }).join('\n')
-          }
+          ${tabItems
+            .map((item, index) => {
+              return `<div class="tab${index === 0 ? ' active' : ''}">${item.title}</div>`;
+            })
+            .join('\n')}
           </div>
           <div class="tabs-body">
-          ${
-            tabItems.map((item, index) => {
-              return `<div class="tab-panel${index === 0 ? ' active' : ''}">${
-              this.parser.parse(item.tokens)
-              }</div>`
-            }).join('\n')
-          }
+          ${tabItems
+            .map((item, index) => {
+              return `<div class="tab-panel${index === 0 ? ' active' : ''}">${this.parser.parse(
+                item.tokens,
+              )}</div>`;
+            })
+            .join('\n')}
           </div>
-        </div>`
+        </div>`;
       },
-    }
+    },
   ],
 };

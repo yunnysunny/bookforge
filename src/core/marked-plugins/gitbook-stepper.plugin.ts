@@ -62,8 +62,7 @@ export const gitbookStepperExtension: MarkedExtension = {
               </div>
               `;
             })
-            .join('\n')
-          }
+            .join('\n')}
         </div>`;
       },
     },
