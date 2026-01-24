@@ -8,7 +8,4 @@ export interface GitbookTagTokenBase extends Tokens.Generic {
   type: string;
   tokens: Tokens.Generic[];
 }
-export type RenderFun = (payload: {
-  innerHtml: string;
-  params: Record<string, string>;
-}) => string;
+export type RenderFun = (payload: { innerHtml: string; params: Record<string, string> }) => string;

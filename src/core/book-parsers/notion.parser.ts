@@ -1,9 +1,35 @@
 import type { TreeNode } from '../../types';
-import { MarkdownRelationManager } from '../../utils/markdown';
+import { isSpecialCVSFile } from '../../utils';
+import { MarkdownRelationManager, type NotionDB } from '../../utils/markdown';
 import { AbstractParser } from './abstract.parser';
 
 export class NotionParser extends AbstractParser {
   private parsedNodes = new Set<string>();
+  private notionDB2Markdown(notionDB: NotionDB) {
+    let table = '';
+    table += `| Name | Created | Tags | URL |\n`;
+    table += `| --- | --- | --- | --- |\n`;
+    notionDB.rows.forEach((row) => {
+      table += `| [${row.Name}](${row.relativePath}) | ${row.Created} | ${row.Tags} | ${row.URL} |\n`;
+    });
+    return table;
+  }
+  private async notionDBFileToTreeNode(
+    notionDBFilePath: string,
+    markdownUtils: MarkdownRelationManager,
+  ): Promise<TreeNode | null> {
+    const notionDB = markdownUtils.getNotionDB(notionDBFilePath);
+    if (!notionDB) {
+      return null;
+    }
+    return {
+      title: notionDB.name,
+      children: [],
+      path: notionDBFilePath,
+      content: this.notionDB2Markdown(notionDB),
+      headings: [],
+    };
+  }
   async doParse(input: string): Promise<TreeNode> {
     const rootNode: TreeNode = {
       title: 'Root',
@@ -19,8 +45,12 @@ export class NotionParser extends AbstractParser {
       if (this.parsedNodes.has(topEntity)) {
         continue;
       }
-
-      const node = await this.markdownFileToTreeNode(topEntity);
+      let node: TreeNode | null;
+      if (isSpecialCVSFile(topEntity)) {
+        node = await this.notionDBFileToTreeNode(topEntity, markdownUtils);
+      } else {
+        node = await this.markdownFileToTreeNode(topEntity);
+      }
       if (!node) {
         continue;
       }
@@ -30,10 +60,7 @@ export class NotionParser extends AbstractParser {
     }
     return rootNode;
   }
-  private async buildChildrenTree(
-    parent: TreeNode,
-    markdownUtils: MarkdownRelationManager,
-  ): Promise<TreeNode> {
+  private async buildChildrenTree(parent: TreeNode, markdownUtils: MarkdownRelationManager): Promise<TreeNode> {
     const children = markdownUtils.getChildren(parent.path as string);
     for (const child of children) {
       if (this.parsedNodes.has(child.childId)) {

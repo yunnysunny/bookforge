@@ -1,17 +1,13 @@
 import type { RendererThis, MarkedExtension, Tokens } from 'marked';
 import { parseParams } from '../../utils/gitbook';
-import type {
-  GitbookTagTokenBase,
-  RenderFun,
-} from './interfaces/gitbook.interface';
+import type { GitbookTagTokenBase, RenderFun } from './interfaces/gitbook.interface';
 
 // ========================
 // 1. GitBook 普通标签渲染器
 // ========================
 const gitbookTagRenderers: Record<string, RenderFun> = {
   // Callout
-  hint: ({ innerHtml, params }) =>
-    `<div class="gb-hint gb-${params.style || 'info'}">${innerHtml}</div>`,
+  hint: ({ innerHtml, params }) => `<div class="gb-hint gb-${params.style || 'info'}">${innerHtml}</div>`,
   // tabs / tab
   // tab: ({innerHtml, params}) =>
   //   `<div class="gb-tab" data-title="${params.title || ''}">${innerHtml}</div>`,

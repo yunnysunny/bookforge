@@ -25,8 +25,7 @@ export const gitbookTabExtension: MarkedExtension = {
 
         const [, content] = match;
 
-        const tabRegex =
-          /\{%\s*tab\s+title="([^"]+)"\s*%\}([\s\S]*?)\{%\s*endtab\s*%\}/g;
+        const tabRegex = /\{%\s*tab\s+title="([^"]+)"\s*%\}([\s\S]*?)\{%\s*endtab\s*%\}/g;
         const tabItems: TabItem[] = [];
         let matchTab: RegExpExecArray | null = tabRegex.exec(content);
         while (matchTab !== null) {
@@ -61,9 +60,7 @@ export const gitbookTabExtension: MarkedExtension = {
           <div class="tabs-body">
           ${tabItems
             .map((item, index) => {
-              return `<div class="tab-panel${index === 0 ? ' active' : ''}">${this.parser.parse(
-                item.tokens,
-              )}</div>`;
+              return `<div class="tab-panel${index === 0 ? ' active' : ''}">${this.parser.parse(item.tokens)}</div>`;
             })
             .join('\n')}
           </div>

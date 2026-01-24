@@ -45,10 +45,7 @@ export class GitbookParser extends AbstractParser {
   /**
    * 解析入口文件
    */
-  private async parseEntryFile(
-    entryFilePath: string,
-    rootNode: TreeNode,
-  ): Promise<void> {
+  private async parseEntryFile(entryFilePath: string, rootNode: TreeNode): Promise<void> {
     const content = await readFile(entryFilePath, 'utf-8');
     const lines = content.split('\n');
 
@@ -81,10 +78,7 @@ export class GitbookParser extends AbstractParser {
   /**
    * 扫描所有 markdown 文件
    */
-  private async scanMarkdownFiles(
-    inputPath: string,
-    rootNode: TreeNode,
-  ): Promise<void> {
+  private async scanMarkdownFiles(inputPath: string, rootNode: TreeNode): Promise<void> {
     const files = await this.getMarkdownFiles(inputPath);
 
     for (const filePath of files) {
@@ -117,11 +111,7 @@ export class GitbookParser extends AbstractParser {
 
         if (fileStat.isDirectory()) {
           // 跳过忽略的目录
-          if (
-            this.options.ignorePatterns?.some((pattern) =>
-              item.includes(pattern),
-            )
-          ) {
+          if (this.options.ignorePatterns?.some((pattern) => item.includes(pattern))) {
             continue;
           }
           files.push(...(await this.getMarkdownFiles(itemPath)));

@@ -38,9 +38,7 @@ export abstract class AbstractParser implements IBookParser {
   /**
    * 解析单个 markdown 文件
    */
-  protected async parseMarkdownFile(
-    filePath: string,
-  ): Promise<MarkdownFile | null> {
+  protected async parseMarkdownFile(filePath: string): Promise<MarkdownFile | null> {
     try {
       return await this.markdownParser.parseFile(filePath);
     } catch (error) {
@@ -48,9 +46,7 @@ export abstract class AbstractParser implements IBookParser {
       return null;
     }
   }
-  protected async markdownFileToTreeNode(
-    filePath: string,
-  ): Promise<TreeNode | null> {
+  protected async markdownFileToTreeNode(filePath: string): Promise<TreeNode | null> {
     const markdownFile = await this.parseMarkdownFile(filePath);
     if (!markdownFile) {
       return null;

@@ -1,17 +1,10 @@
 // 工具函数
 
-import {
-  access,
-  constants,
-  readFile as fsReadFile,
-  mkdir,
-  mkdtemp,
-  unlink,
-  readdir,
-} from 'fs/promises';
+import { access, constants, readFile as fsReadFile, mkdir, mkdtemp, unlink, readdir, stat } from 'fs/promises';
 import { basename, extname, join } from 'path';
 import os from 'os';
 import unzipper from 'unzipper';
+const NOTION_DB_FILENAME_SUFFIX = '_all.csv';
 
 export async function mkdirAsync(path: string): Promise<string | undefined> {
   return await mkdir(path, { recursive: true });
@@ -19,10 +12,7 @@ export async function mkdirAsync(path: string): Promise<string | undefined> {
 /**
  * 读取文件内容
  */
-export async function readFile(
-  filePath: string,
-  encoding: BufferEncoding = 'utf-8',
-): Promise<string> {
+export async function readFile(filePath: string, encoding: BufferEncoding = 'utf-8'): Promise<string> {
   await access(filePath, constants.F_OK);
   return await fsReadFile(filePath, encoding);
 }
@@ -33,6 +23,24 @@ export async function readFile(
 export function isMarkdownFile(filePath: string): boolean {
   const ext = extname(filePath).toLowerCase();
   return ext === '.md' || ext === '.markdown';
+}
+
+export function isSpecialCVSFile(filePath: string): boolean {
+  return filePath.endsWith(NOTION_DB_FILENAME_SUFFIX);
+}
+
+export async function getNotionDBFile(filePath: string): Promise<string | undefined> {
+  const name = filePath.slice(0, -NOTION_DB_FILENAME_SUFFIX.length);
+  const folder = name.split(' ')[0];
+  try {
+    const stats = await stat(join(basename(filePath), folder));
+    if (stats.isDirectory()) {
+      return name;
+    }
+    return;
+  } catch (error) {
+    return;
+  }
 }
 
 export function isZipFile(filePath: string): boolean {
@@ -48,10 +56,7 @@ export function generateIdFromText(text: string): string {
     .toLowerCase()
     .trim()
     .replace(/<[!/a-z].*?>/gi, '') // 移除 HTML 标签
-    .replace(
-      /[\u2000-\u206F\u2E00-\u2E7F\\\\'!"#$%&()*+,./:;<=>?@[\\\]^`{|}~]/g,
-      '',
-    )
+    .replace(/[\u2000-\u206F\u2E00-\u2E7F\\\\'!"#$%&()*+,./:;<=>?@[\\\]^`{|}~]/g, '')
     .replace(/\s+/g, '-'); // 空白替换为 -
 
   // 去掉前后 -
@@ -72,9 +77,7 @@ export function getFileName(filePath: string): string {
 export function normalizePath(path: string): string {
   return path.replace(/\\/g, '/');
 }
-export async function createTempDir(
-  dirnamePrefix: string = 'bookforge-',
-): Promise<string> {
+export async function createTempDir(dirnamePrefix: string = 'bookforge-'): Promise<string> {
   const tempDir = await mkdtemp(join(os.tmpdir(), dirnamePrefix));
   return tempDir;
 }
@@ -82,10 +85,7 @@ export async function removeDir(dir: string): Promise<void> {
   await unlink(dir);
 }
 
-export async function unzipFile(
-  zipPath: string,
-  destDir: string,
-): Promise<void> {
+export async function unzipFile(zipPath: string, destDir: string): Promise<void> {
   const directory = await unzipper.Open.file(zipPath);
   await directory.extract({ path: destDir });
   const files = await readdir(destDir);

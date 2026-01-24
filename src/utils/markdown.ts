@@ -1,13 +1,30 @@
 import { readdir, stat, readFile } from 'fs/promises';
 import { join, dirname } from 'path';
-import { isMarkdownFile } from '.';
+import { getNotionDBFile, isMarkdownFile, isSpecialCVSFile } from '.';
 import { type Child, RelationManager } from './relation';
+import { parseFile } from '@fast-csv/parse';
+export interface NotionDBRow {
+  Name: string;
+  Created: string;
+  Tags: string;
+  URL: string;
+}
+
+export interface NotionDBRecord extends NotionDBRow {
+  relativePath: string;
+}
+export interface NotionDB {
+  filePath: string;
+  name: string;
+  rows: NotionDBRecord[];
+}
 export interface MarkdownUtilsOptions {
   ignorePatterns?: string[];
   inputPath: string;
 }
 export class MarkdownRelationManager {
   private readonly relationManager: RelationManager = new RelationManager();
+  private readonly notionDBs: Map<string, NotionDB> = new Map();
   public readonly inputPath: string;
   public readonly ignorePatterns?: string[];
   public constructor(options: MarkdownUtilsOptions) {
@@ -20,6 +37,9 @@ export class MarkdownRelationManager {
   }
   public getChildren(parentId: string): Child[] {
     return this.relationManager.getChildren(parentId);
+  }
+  public getNotionDB(notionDBFilePath: string): NotionDB | undefined {
+    return this.notionDBs.get(notionDBFilePath);
   }
   /**
    * 获取所有 markdown 文件
@@ -39,13 +59,45 @@ export class MarkdownRelationManager {
             continue;
           }
           await this.visitAllMarkdownFiles(itemPath);
-        } else if (fileStat.isFile() && isMarkdownFile(item)) {
-          await this.parseInnerLinks(itemPath);
+        } else if (fileStat.isFile()) {
+          if (isMarkdownFile(itemPath)) {
+            await this.parseInnerLinks(itemPath);
+          } else if (isSpecialCVSFile(itemPath)) {
+            const name = await getNotionDBFile(itemPath);
+            if (!name) {
+              continue;
+            }
+            await this.parseNotionDBFile(itemPath, name);
+          }
         }
       }
     } catch (error) {
       console.warn(`无法读取目录: ${dirPath}`, error);
     }
+  }
+
+  private async parseNotionDBFile(notionDBFilePath: string, name: string): Promise<void> {
+    const rows: NotionDBRecord[] = [];
+    await new Promise((resolve, reject) => {
+      parseFile(notionDBFilePath, { headers: true })
+        .on('data', (row: NotionDBRow) => {
+          const childLink = join(name, row.Name);
+          const childPath = join(dirname(notionDBFilePath), childLink);
+          rows.push({ ...row, relativePath: childLink });
+          this.relationManager.addRelation({
+            parentId: notionDBFilePath,
+            childId: childPath,
+            relativePath: childLink,
+          });
+        })
+        .on('end', () => {
+          resolve(undefined);
+        })
+        .on('error', (error) => {
+          reject(error);
+        });
+    });
+    this.notionDBs.set(notionDBFilePath, { rows, name, filePath: notionDBFilePath });
   }
 
   /**
@@ -65,10 +117,7 @@ export class MarkdownRelationManager {
       const link = linkMatch[2];
 
       // 解析链接的 markdown 文件
-      const childPath = join(
-        dirname(markdownFilePath),
-        decodeURIComponent(link),
-      );
+      const childPath = join(dirname(markdownFilePath), decodeURIComponent(link));
       if (!isMarkdownFile(childPath)) {
         continue;
       }

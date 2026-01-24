@@ -4,16 +4,16 @@ import { copyFile } from 'fs/promises';
 import { marked, type Token, type Tokens, Marked } from 'marked';
 import { basename, dirname, extname, join } from 'path';
 import type { Env, Heading, MarkdownFile } from '../types/index.js';
-import {
-  generateIdFromText,
-  isMarkdownFile,
-  mkdirAsync,
-  readFile,
-} from '../utils';
+import { generateIdFromText, isMarkdownFile, mkdirAsync, readFile } from '../utils';
 import { gitbookExtension } from './marked-plugins/gitbook.plugin.js';
 import { katexExtension } from './marked-plugins/katex.plugin.js';
 import { gitbookTabExtension } from './marked-plugins/gitbook-tab.plugin.js';
 import { gitbookStepperExtension } from './marked-plugins/gitbook-stepper.plugin.js';
+import {
+  gitbookIncludeExtension,
+  type GitbookIncludeToken,
+  IncludeTokenType,
+} from './marked-plugins/gitbook-include.plugin.js';
 
 const renderer = new marked.Renderer();
 renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
@@ -48,6 +48,7 @@ export class MarkdownParser {
     this.marked.use(gitbookTabExtension);
     this.marked.use(gitbookStepperExtension);
     this.marked.use(katexExtension);
+    this.marked.use(gitbookIncludeExtension);
   }
 
   /**
@@ -187,6 +188,11 @@ ${diagram}
             // 如果没有指定语言，设置为 plain text
             codeToken.lang = 'plain';
           }
+        } else if (token.type === IncludeTokenType) {
+          const includeToken = token as GitbookIncludeToken;
+          const includeContent = await readFile(join(dirname(options.contentPath), includeToken.path));
+          token.type = 'html';
+          token.text = await this.toHtml(includeContent, options);
         }
       },
     });

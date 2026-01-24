@@ -99,9 +99,7 @@ describe('HtmlGenerator', () => {
         children: [],
       };
 
-      const html = await (
-        generator as unknown as MockHtmlGenerator
-      ).generateSinglePageHtml(page);
+      const html = await (generator as unknown as MockHtmlGenerator).generateSinglePageHtml(page);
 
       expect(html).toContain('<!DOCTYPE html>');
       expect(html).toContain('<title>测试文档</title>');
@@ -127,9 +125,7 @@ describe('HtmlGenerator', () => {
         },
       ];
 
-      const html = await (
-        generator as unknown as MockHtmlGenerator
-      ).generateTableOfContents(mockHeadings);
+      const html = await (generator as unknown as MockHtmlGenerator).generateTableOfContents(mockHeadings);
 
       expect(html).toContain('<ul class="toc-list">');
       expect(html).toContain('主标题');
@@ -167,9 +163,7 @@ describe('HtmlGenerator', () => {
         ],
       };
 
-      const sidebar = await (
-        generator as unknown as MockHtmlGenerator
-      ).generateSidebar(mockTree);
+      const sidebar = await (generator as unknown as MockHtmlGenerator).generateSidebar(mockTree);
 
       expect(sidebar).toContain('文档1');
       expect(sidebar).toContain('子文档1');
@@ -209,9 +203,7 @@ describe('HtmlGenerator', () => {
         },
       ];
 
-      const toc = await (
-        generator as unknown as MockHtmlGenerator
-      ).generateTableOfContents(mockHeadings);
+      const toc = await (generator as unknown as MockHtmlGenerator).generateTableOfContents(mockHeadings);
 
       expect(toc).toContain('<ul class="toc-list">');
       expect(toc).toContain('主标题');
