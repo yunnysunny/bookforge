@@ -1,6 +1,15 @@
 // 工具函数
 
-import { access, constants, readFile as fsReadFile, mkdir, mkdtemp, unlink, readdir, stat } from 'fs/promises';
+import {
+  access,
+  constants,
+  readFile as fsReadFile,
+  mkdir,
+  mkdtemp,
+  unlink,
+  readdir,
+  stat,
+} from 'fs/promises';
 import { basename, extname, join } from 'path';
 import os from 'os';
 import unzipper from 'unzipper';
@@ -12,7 +21,10 @@ export async function mkdirAsync(path: string): Promise<string | undefined> {
 /**
  * 读取文件内容
  */
-export async function readFile(filePath: string, encoding: BufferEncoding = 'utf-8'): Promise<string> {
+export async function readFile(
+  filePath: string,
+  encoding: BufferEncoding = 'utf-8',
+): Promise<string> {
   await access(filePath, constants.F_OK);
   return await fsReadFile(filePath, encoding);
 }

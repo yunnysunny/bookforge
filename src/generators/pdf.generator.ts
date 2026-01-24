@@ -116,7 +116,12 @@ export class PdfGenerator extends AbstractGenerator {
   private async generatePdfFromHtml(htmlContent: string): Promise<void> {
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--allow-file-access-from-files', '--disable-web-security'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--allow-file-access-from-files',
+        '--disable-web-security',
+      ],
     });
 
     try {

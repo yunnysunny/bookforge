@@ -190,7 +190,9 @@ ${diagram}
           }
         } else if (token.type === IncludeTokenType) {
           const includeToken = token as GitbookIncludeToken;
-          const includeContent = await readFile(join(dirname(options.contentPath), includeToken.path));
+          const includeContent = await readFile(
+            join(dirname(options.contentPath), includeToken.path),
+          );
           token.type = 'html';
           token.text = await this.toHtml(includeContent, options);
         }

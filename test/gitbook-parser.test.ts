@@ -117,7 +117,9 @@ describe('GitbookParser', () => {
       vi.spyOn(utils, 'readFile').mockResolvedValue(mockContent);
 
       // 模拟 parseMarkdownFile 方法
-      const parseMarkdownFileSpy = vi.spyOn(parser as any, 'parseMarkdownFile').mockResolvedValue(mockMarkdownFile);
+      const parseMarkdownFileSpy = vi
+        .spyOn(parser as any, 'parseMarkdownFile')
+        .mockResolvedValue(mockMarkdownFile);
 
       const rootNode: TreeNode = { title: 'Root', children: [] };
       await (parser as any).parseEntryFile('./docs/README.md', rootNode);
@@ -149,7 +151,9 @@ describe('GitbookParser', () => {
 
       vi.spyOn(utils, 'readFile').mockResolvedValue(mockContent);
 
-      const parseMarkdownFileSpy = vi.spyOn(parser as any, 'parseMarkdownFile').mockResolvedValue(mockMarkdownFile);
+      const parseMarkdownFileSpy = vi
+        .spyOn(parser as any, 'parseMarkdownFile')
+        .mockResolvedValue(mockMarkdownFile);
 
       const rootNode: TreeNode = { title: 'Root', children: [] };
       await (parser as any).parseEntryFile('./docs/README.md', rootNode);

@@ -125,7 +125,9 @@ describe('HtmlGenerator', () => {
         },
       ];
 
-      const html = await (generator as unknown as MockHtmlGenerator).generateTableOfContents(mockHeadings);
+      const html = await (generator as unknown as MockHtmlGenerator).generateTableOfContents(
+        mockHeadings,
+      );
 
       expect(html).toContain('<ul class="toc-list">');
       expect(html).toContain('主标题');
@@ -203,7 +205,9 @@ describe('HtmlGenerator', () => {
         },
       ];
 
-      const toc = await (generator as unknown as MockHtmlGenerator).generateTableOfContents(mockHeadings);
+      const toc = await (generator as unknown as MockHtmlGenerator).generateTableOfContents(
+        mockHeadings,
+      );
 
       expect(toc).toContain('<ul class="toc-list">');
       expect(toc).toContain('主标题');

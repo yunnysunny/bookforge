@@ -97,7 +97,11 @@ export class MarkdownRelationManager {
           reject(error);
         });
     });
-    this.notionDBs.set(notionDBFilePath, { rows, name, filePath: notionDBFilePath });
+    this.notionDBs.set(notionDBFilePath, {
+      rows,
+      name,
+      filePath: notionDBFilePath,
+    });
   }
 
   /**

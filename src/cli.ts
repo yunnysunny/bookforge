@@ -10,7 +10,10 @@ import { join } from 'path';
 
 const program = new Command();
 const currentWorkingDir = process.cwd();
-program.name('BookForge').description('BookForge - 将 markdown 文件转换为 HTML 网站或 PDF 文件').version('1.0.0');
+program
+  .name('BookForge')
+  .description('BookForge - 将 markdown 文件转换为 HTML 网站或 PDF 文件')
+  .version('1.0.0');
 
 const addCommonOpts = (cmd: Command, outputDefault: string) =>
   cmd

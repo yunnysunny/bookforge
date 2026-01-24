@@ -60,7 +60,10 @@ export class NotionParser extends AbstractParser {
     }
     return rootNode;
   }
-  private async buildChildrenTree(parent: TreeNode, markdownUtils: MarkdownRelationManager): Promise<TreeNode> {
+  private async buildChildrenTree(
+    parent: TreeNode,
+    markdownUtils: MarkdownRelationManager,
+  ): Promise<TreeNode> {
     const children = markdownUtils.getChildren(parent.path as string);
     for (const child of children) {
       if (this.parsedNodes.has(child.childId)) {

@@ -75,7 +75,12 @@ describe('PdfGenerator', () => {
       // });
       expect(puppeteer.launch).toHaveBeenCalledWith({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--allow-file-access-from-files', '--disable-web-security'],
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--allow-file-access-from-files',
+          '--disable-web-security',
+        ],
       });
       expect(mockPage.setContent).toHaveBeenCalled();
       expect(mockPage.pdf).toHaveBeenCalledWith(
@@ -273,7 +278,9 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const toc = await (generator as unknown as MockPdfGenerator).generateTableOfContents(mockTree);
+      const toc = await (generator as unknown as MockPdfGenerator).generateTableOfContents(
+        mockTree,
+      );
 
       expect(toc).toContain('<ul class="toc-list">');
       expect(toc).toContain('文档1');
@@ -302,7 +309,9 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const toc = await (generator as unknown as MockPdfGenerator).generateTableOfContents(mockTree);
+      const toc = await (generator as unknown as MockPdfGenerator).generateTableOfContents(
+        mockTree,
+      );
 
       expect(toc).toContain('主文档');
       expect(toc).toContain('子文档');

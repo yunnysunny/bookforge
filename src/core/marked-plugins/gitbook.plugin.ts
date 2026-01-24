@@ -7,7 +7,8 @@ import type { GitbookTagTokenBase, RenderFun } from './interfaces/gitbook.interf
 // ========================
 const gitbookTagRenderers: Record<string, RenderFun> = {
   // Callout
-  hint: ({ innerHtml, params }) => `<div class="gb-hint gb-${params.style || 'info'}">${innerHtml}</div>`,
+  hint: ({ innerHtml, params }) =>
+    `<div class="gb-hint gb-${params.style || 'info'}">${innerHtml}</div>`,
   // tabs / tab
   // tab: ({innerHtml, params}) =>
   //   `<div class="gb-tab" data-title="${params.title || ''}">${innerHtml}</div>`,
