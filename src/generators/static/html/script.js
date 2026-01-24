@@ -214,4 +214,32 @@ document.addEventListener('DOMContentLoaded', function() {
             panels[i].classList.add('active')
         })
     })
+    
+    // 回到顶部功能
+    const backToTop = document.getElementById('backToTop');
+    
+    if (backToTop) {
+        // 监听滚动事件，显示/隐藏按钮
+        function handleScroll() {
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('show');
+            } else {
+                backToTop.classList.remove('show');
+            }
+        }
+        
+        // 点击按钮，平滑滚动到顶部
+        backToTop.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 初始化时检查滚动位置
+        handleScroll();
+        
+        // 监听滚动事件
+        window.addEventListener('scroll', handleScroll);
+    }
 });
