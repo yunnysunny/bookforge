@@ -7,10 +7,20 @@ export class NotionParser extends AbstractParser {
   private parsedNodes = new Set<string>();
   private notionDB2Markdown(notionDB: NotionDB) {
     let table = '';
-    table += `| Name | Created | Tags | URL |\n`;
-    table += `| --- | --- | --- | --- |\n`;
+    if (notionDB.rows.length === 0) {
+      return '';
+    }
+    const firstRow = notionDB.rows[0];
+    const keys = Object.keys(firstRow);
+
+    table += `${keys.map((key) => `| ${key} |`).join(' ')}\n`;
+    table += `${keys.map(() => `| --- |`).join(' ')}\n`;
     notionDB.rows.forEach((row) => {
-      table += `| [${row.Name}](${row.relativePath}) | ${row.Created} | ${row.Tags} | ${row.URL} |\n`;
+      const name = (row as any)[keys[0]];
+      table += `| [${name}](${row.relativePath}) ${keys
+        .slice(1)
+        .map((key) => `| ${(row as any)[key]}`)
+        .join(' ')} |\n`;
     });
     return table;
   }

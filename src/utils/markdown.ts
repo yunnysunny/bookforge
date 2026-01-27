@@ -1,15 +1,9 @@
 import { readdir, stat, readFile } from 'fs/promises';
 import { join, dirname } from 'path';
-import { getNotionDBFile, isMarkdownFile, isSpecialCVSFile } from '.';
+import { getNotionDBFile, isExist, isMarkdownFile, isSpecialCVSFile } from '.';
 import { type Child, RelationManager } from './relation';
 import { parseFile } from '@fast-csv/parse';
-export interface NotionDBRow {
-  Name: string;
-  Created: string;
-  Tags: string;
-  URL: string;
-}
-
+export type NotionDBRow = object;
 export interface NotionDBRecord extends NotionDBRow {
   relativePath: string;
 }
@@ -77,18 +71,18 @@ export class MarkdownRelationManager {
   }
 
   private async parseNotionDBFile(notionDBFilePath: string, name: string): Promise<void> {
-    const rows: NotionDBRecord[] = [];
+    const rows: NotionDBRow[] = [];
     await new Promise((resolve, reject) => {
       parseFile(notionDBFilePath, { headers: true })
         .on('data', (row: NotionDBRow) => {
-          const childLink = join(name, row.Name);
-          const childPath = join(dirname(notionDBFilePath), childLink);
-          rows.push({ ...row, relativePath: childLink });
-          this.relationManager.addRelation({
-            parentId: notionDBFilePath,
-            childId: childPath,
-            relativePath: childLink,
-          });
+          // const childLink = join(name, row.Name);
+          // const childPath = join(dirname(notionDBFilePath), childLink);
+          rows.push(row);
+          // this.relationManager.addRelation({
+          //   parentId: notionDBFilePath,
+          //   childId: childPath,
+          //   relativePath: childLink,
+          // });
         })
         .on('end', () => {
           resolve(undefined);
@@ -97,8 +91,48 @@ export class MarkdownRelationManager {
           reject(error);
         });
     });
+    if (rows.length === 0) {
+      return;
+    }
+    const firstRow = rows[0] as Record<string, string>;
+    const keys = Object.keys(firstRow);
+    const firstKey = keys[0];
+    const link = firstRow[firstKey];
+    const baseDir = dirname(notionDBFilePath);
+    let dbDir = join(baseDir, name);
+    const handle = await stat(dbDir);
+    if (!handle.isDirectory()) {
+      dbDir = baseDir;
+    }
+    const files = await readdir(dbDir);
+    if (files.length === 0) {
+      return;
+    }
+    files.filter(file => {
+      const path = join(dbDir, file);
+      if (!isMarkdownFile(path)) {
+        return false;
+      }
+      return true;
+    });
+    const records = rows.map((row: any) => {
+      const link = row[firstKey];
+      let childId = '';
+      if (isExistLink) {
+        childId = join(baseDir, link);
+      } else {
+        childId = join(baseDir, name, link);
+      }
+      this.relationManager.addRelation({
+        parentId: notionDBFilePath,
+        childId,
+        relativePath: link,
+      });
+      return { ...row, relativePath: childId };
+    });
+
     this.notionDBs.set(notionDBFilePath, {
-      rows,
+      rows: records,
       name,
       filePath: notionDBFilePath,
     });

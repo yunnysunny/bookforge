@@ -42,17 +42,18 @@ export function isSpecialCVSFile(filePath: string): boolean {
 }
 
 export async function getNotionDBFile(filePath: string): Promise<string | undefined> {
-  const name = filePath.slice(0, -NOTION_DB_FILENAME_SUFFIX.length);
-  const folder = name.split(' ')[0];
-  try {
-    const stats = await stat(join(basename(filePath), folder));
-    if (stats.isDirectory()) {
-      return name;
-    }
-    return;
-  } catch (error) {
-    return;
-  }
+  const name = basename(filePath);
+  const dbName = name.split(' ')[0];
+  return dbName;
+  // try {
+  //   const stats = await stat(join(basename(filePath), folder));
+  //   if (stats.isDirectory()) {
+  //     return name;
+  //   }
+  //   return;
+  // } catch (error) {
+  //   return;
+  // }
 }
 
 export function isZipFile(filePath: string): boolean {
@@ -106,5 +107,14 @@ export async function unzipFile(zipPath: string, destDir: string): Promise<void>
   }
   if (files.length === 1 && isZipFile(files[0])) {
     return await unzipFile(join(destDir, files[0]), destDir);
+  }
+}
+
+export async function isExist(path: string): Promise<boolean> {
+  try {
+    await access(path, constants.F_OK);
+    return true;
+  } catch (error) {
+    return false;
   }
 }
