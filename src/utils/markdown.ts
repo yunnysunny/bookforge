@@ -97,38 +97,47 @@ export class MarkdownRelationManager {
     const firstRow = rows[0] as Record<string, string>;
     const keys = Object.keys(firstRow);
     const firstKey = keys[0];
-    const link = firstRow[firstKey];
+
+    const names = rows.map((row: any) => {
+      const rowData = row as Record<string, string>;
+      return rowData[firstKey];
+    });
     const baseDir = dirname(notionDBFilePath);
     let dbDir = join(baseDir, name);
     const handle = await stat(dbDir);
-    if (!handle.isDirectory()) {
+    const hasDbDir = handle.isDirectory();
+    if (!hasDbDir) {
       dbDir = baseDir;
     }
     const files = await readdir(dbDir);
     if (files.length === 0) {
       return;
     }
-    files.filter(file => {
+    const records: NotionDBRecord[] = [];
+    files.forEach(file => {
       const path = join(dbDir, file);
       if (!isMarkdownFile(path)) {
-        return false;
+        return;
       }
-      return true;
-    });
-    const records = rows.map((row: any) => {
-      const link = row[firstKey];
-      let childId = '';
-      if (isExistLink) {
-        childId = join(baseDir, link);
-      } else {
-        childId = join(baseDir, name, link);
+      const dbName = file.split(' ')[0];
+      const index = names.indexOf(dbName);
+      if (index === -1) {
+        return;
       }
+      const row = rows[index];
+      // const name = (row as any)[firstKey];
+      const relativePath = hasDbDir ? join(name, file) : file;
+      const childId = path;
+
       this.relationManager.addRelation({
         parentId: notionDBFilePath,
         childId,
-        relativePath: link,
+        relativePath,
       });
-      return { ...row, relativePath: childId };
+      records.push({
+        ...row,
+        relativePath,
+      });
     });
 
     this.notionDBs.set(notionDBFilePath, {
