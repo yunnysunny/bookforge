@@ -114,7 +114,15 @@ export class MarkdownRelationManager {
       return;
     }
     const records: NotionDBRecord[] = [];
-    files.forEach(file => {
+    const row2PathMap = new Map<
+      string,
+      {
+        childId: string;
+        relativePath: string;
+        row: object;
+      }
+    >();
+    files.forEach((file) => {
       const path = join(dbDir, file);
       if (!isMarkdownFile(path)) {
         return;
@@ -125,21 +133,30 @@ export class MarkdownRelationManager {
         return;
       }
       const row = rows[index];
-      // const name = (row as any)[firstKey];
       const relativePath = hasDbDir ? join(name, file) : file;
       const childId = path;
 
-      this.relationManager.addRelation({
-        parentId: notionDBFilePath,
+      row2PathMap.set(dbName, {
         childId,
         relativePath,
-      });
-      records.push({
-        ...row,
-        relativePath,
+        row,
       });
     });
-
+    names.forEach((name) => {
+      const data = row2PathMap.get(name);
+      if (!data) {
+        return;
+      }
+      records.push({
+        ...data.row,
+        relativePath: data.relativePath,
+      });
+      this.relationManager.addRelation({
+        parentId: notionDBFilePath,
+        childId: data.childId,
+        relativePath: data.relativePath,
+      });
+    });
     this.notionDBs.set(notionDBFilePath, {
       rows: records,
       name,

@@ -13,8 +13,8 @@ export class NotionParser extends AbstractParser {
     const firstRow = notionDB.rows[0];
     const keys = Object.keys(firstRow);
 
-    table += `${keys.map((key) => `| ${key} |`).join(' ')}\n`;
-    table += `${keys.map(() => `| --- |`).join(' ')}\n`;
+    table += `${keys.map((key) => `| ${key} `).join(' ')} |\n`;
+    table += `${keys.map(() => `| --- `).join(' ')} |\n`;
     notionDB.rows.forEach((row) => {
       const name = (row as any)[keys[0]];
       table += `| [${name}](${row.relativePath}) ${keys
