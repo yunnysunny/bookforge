@@ -15,7 +15,15 @@ import {
   IncludeTokenType,
 } from './marked-plugins/gitbook-include.plugin.js';
 
-
+const renderer = new marked.Renderer();
+renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
+  const token = tokens[0] as unknown as Heading;
+  token.id = generateIdFromText(token.text);
+  return `<h${depth} id="${token.id}">
+  <a href="#${token.id}" class="anchor"></a>
+  ${token.text}
+</h${depth}>`;
+};
 
 export interface MarkdownParserOptions {
   env: Env;
@@ -31,16 +39,6 @@ export class MarkdownParser {
   constructor(options: MarkdownParserOptions) {
     this.env = options.env;
     this.marked = new Marked();
-    const renderer = new marked.Renderer();
-    renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
-      const token = tokens[0] as unknown as Heading;
-      // const text = this.marked.parseInline(tokens);
-      token.id = generateIdFromText(token.text);
-      return `<h${depth} id="${token.id}">
-      <a href="#${token.id}" class="anchor"></a>
-      ${token.text}
-    </h${depth}>`;
-    };
     this.marked.setOptions({
       gfm: true,
       breaks: true,
@@ -140,6 +138,41 @@ export class MarkdownParser {
     return imageToPath;
   }
 
+  // /**
+  //  * 解析表格单元格中的链接
+  //  */
+  // private parseTableCellLinks(cell: Tokens.TableCell): void {
+  //   // 如果单元格内容只是纯文本且包含链接格式，则解析为链接
+  //   if (cell.tokens.length === 1 && cell.tokens[0].type === 'text') {
+  //     const textToken = cell.tokens[0] as Tokens.Text;
+  //     const linkMatch = textToken.text.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+  //     if (linkMatch) {
+  //       let href = linkMatch[2];
+  //       if (isMarkdownFile(href)) {
+  //         const path = dirname(href);
+  //         const filename = basename(href, extname(href));
+  //         href = path === '.' ? `./${filename}.html` : `${path}/${filename}.html`;
+  //       }
+  //       // 将文本 token 替换为链接 token
+  //       const linkToken: Tokens.Link = {
+  //         type: 'link',
+  //         raw: textToken.raw,
+  //         href,
+  //         title: null,
+  //         text: linkMatch[1],
+  //         tokens: [
+  //           {
+  //             type: 'text',
+  //             raw: linkMatch[1],
+  //             text: linkMatch[1],
+  //           },
+  //         ],
+  //       };
+  //       cell.tokens = [linkToken];
+  //     }
+  //   }
+  // }
+
   /**
    * 将 markdown 转换为 HTML
    */
@@ -166,6 +199,10 @@ export class MarkdownParser {
           }
         } else if (token.type === 'link') {
           const href = token.href;
+          // 检查 href 是否存在
+          if (!href) {
+            return;
+          }
           if (href.startsWith('http') || href.startsWith('https')) {
             return;
           }
@@ -175,7 +212,8 @@ export class MarkdownParser {
           }
           const path = dirname(href);
           const filename = basename(href, extname(href));
-          const link = `${path}/${filename}.html`;
+          // 确保路径格式正确：如果 path 是 '.'，则使用相对路径
+          const link = path === '.' ? `./${filename}.html` : `${path}/${filename}.html`;
           token.href = link;
         } else if (token.type === 'code') {
           // 处理 mermaid 代码块

@@ -1,3 +1,4 @@
+import { basename, extname } from 'path';
 import type { TreeNode } from '../../types';
 import { isSpecialCVSFile } from '../../utils';
 import { MarkdownRelationManager, type NotionDB } from '../../utils/markdown';
@@ -11,13 +12,13 @@ export class NotionParser extends AbstractParser {
       return '';
     }
     const firstRow = notionDB.rows[0];
-    const keys = Object.keys(firstRow);
+    const keys = Object.keys(firstRow).filter((key) => key !== 'relativePath');
 
     table += `${keys.map((key) => `| ${key} `).join(' ')} |\n`;
     table += `${keys.map(() => `| --- `).join(' ')} |\n`;
     notionDB.rows.forEach((row) => {
       const name = (row as any)[keys[0]];
-      table += `| [${name}](${row.relativePath}) ${keys
+      table += `| [${name}](${this.getFileNameInner(this.getNameFromPath(row.relativePath))}.md) ${keys
         .slice(1)
         .map((key) => `| ${(row as any)[key]}`)
         .join(' ')} |\n`;
@@ -93,15 +94,29 @@ export class NotionParser extends AbstractParser {
     }
     return parent;
   }
-  /**
-   * 获取文件名
-   */
-  public getFileName(node: TreeNode): string {
-    return encodeURIComponent(node.title)
+  private getFileNameInner(name: string): string {
+    return encodeURIComponent(name)
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
+  }
+  private getNameFromPath(path: string) {
+    let name = basename(path, extname(path));
+    name = name.split(' ').pop() as string;
+    return name;
+  }
+  /**
+   * 获取文件名
+   */
+  public getFileName(node: TreeNode): string {
+    let name = node.path;
+    if (name) {
+      name = this.getNameFromPath(name);
+    } else {
+      name = node.title;
+    }
+    return this.getFileNameInner(name);
   }
 }
