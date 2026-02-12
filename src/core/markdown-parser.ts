@@ -15,15 +15,7 @@ import {
   IncludeTokenType,
 } from './marked-plugins/gitbook-include.plugin.js';
 
-const renderer = new marked.Renderer();
-renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
-  const token = tokens[0] as unknown as Heading;
-  token.id = generateIdFromText(token.text);
-  return `<h${depth} id="${token.id}">
-  <a href="#${token.id}" class="anchor"></a>
-  ${token.text}
-</h${depth}>`;
-};
+
 
 export interface MarkdownParserOptions {
   env: Env;
@@ -39,6 +31,16 @@ export class MarkdownParser {
   constructor(options: MarkdownParserOptions) {
     this.env = options.env;
     this.marked = new Marked();
+    const renderer = new marked.Renderer();
+    renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
+      const token = tokens[0] as unknown as Heading;
+      // const text = this.marked.parseInline(tokens);
+      token.id = generateIdFromText(token.text);
+      return `<h${depth} id="${token.id}">
+      <a href="#${token.id}" class="anchor"></a>
+      ${token.text}
+    </h${depth}>`;
+    };
     this.marked.setOptions({
       gfm: true,
       breaks: true,
