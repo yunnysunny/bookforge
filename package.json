@@ -16,6 +16,7 @@
     "start": "tsx src/cli.ts",
     "start:html": "tsx src/cli.ts html --input ./docs --output ./examples/html",
     "start:notion": "tsx src/cli.ts all --input ./zip/notion0.zip --output ./examples --mode notion",
+    "start:notion:db": "tsx src/cli.ts html --input ./zip/notion-db0.zip --output ./examples --mode notion",
     "start:pdf": "tsx src/cli.ts pdf --input ./docs --output ./examples/pdf",
     "start:all": "tsx src/cli.ts all --input ./docs --output ./examples",
     "start:single": "tsx src/cli.ts html --input ./test/fixtures/single --output ./examples/single",
@@ -50,6 +51,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@fast-csv/parse": "^5.0.5",
     "chalk": "^5.6.2",
     "commander": "^14.0.2",
     "ejs": "^3.1.10",

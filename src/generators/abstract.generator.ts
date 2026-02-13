@@ -33,10 +33,7 @@ export abstract class AbstractGenerator {
   }
   protected abstract doGenerate(treeRoot: TreeNode): Promise<void>;
   protected async render(filename: string, data: any): Promise<string> {
-    return await Tpl.renderFileAsync(
-      join(__dirname, 'tpls', this.name, filename),
-      data,
-    );
+    return await Tpl.renderFileAsync(join(__dirname, 'tpls', this.name, filename), data);
   }
 
   public async generate(): Promise<void> {

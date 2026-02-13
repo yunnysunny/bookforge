@@ -1,9 +1,46 @@
+import { basename, extname } from 'path';
 import type { TreeNode } from '../../types';
-import { MarkdownRelationManager } from '../../utils/markdown';
+import { isSpecialCVSFile } from '../../utils';
+import { MarkdownRelationManager, type NotionDB } from '../../utils/markdown';
 import { AbstractParser } from './abstract.parser';
 
 export class NotionParser extends AbstractParser {
   private parsedNodes = new Set<string>();
+  private notionDB2Markdown(notionDB: NotionDB) {
+    let table = '';
+    if (notionDB.rows.length === 0) {
+      return '';
+    }
+    const firstRow = notionDB.rows[0];
+    const keys = Object.keys(firstRow).filter((key) => key !== 'relativePath');
+
+    table += `${keys.map((key) => `| ${key} `).join(' ')} |\n`;
+    table += `${keys.map(() => `| --- `).join(' ')} |\n`;
+    notionDB.rows.forEach((row) => {
+      const name = (row as any)[keys[0]];
+      table += `| [${name}](${this.getFileNameInner(this.getNameFromPath(row.relativePath))}.md) ${keys
+        .slice(1)
+        .map((key) => `| ${(row as any)[key]}`)
+        .join(' ')} |\n`;
+    });
+    return table;
+  }
+  private async notionDBFileToTreeNode(
+    notionDBFilePath: string,
+    markdownUtils: MarkdownRelationManager,
+  ): Promise<TreeNode | null> {
+    const notionDB = markdownUtils.getNotionDB(notionDBFilePath);
+    if (!notionDB) {
+      return null;
+    }
+    return {
+      title: notionDB.name,
+      children: [],
+      path: notionDBFilePath,
+      content: this.notionDB2Markdown(notionDB),
+      headings: [],
+    };
+  }
   async doParse(input: string): Promise<TreeNode> {
     const rootNode: TreeNode = {
       title: 'Root',
@@ -19,8 +56,12 @@ export class NotionParser extends AbstractParser {
       if (this.parsedNodes.has(topEntity)) {
         continue;
       }
-
-      const node = await this.markdownFileToTreeNode(topEntity);
+      let node: TreeNode | null;
+      if (isSpecialCVSFile(topEntity)) {
+        node = await this.notionDBFileToTreeNode(topEntity, markdownUtils);
+      } else {
+        node = await this.markdownFileToTreeNode(topEntity);
+      }
       if (!node) {
         continue;
       }
@@ -53,15 +94,29 @@ export class NotionParser extends AbstractParser {
     }
     return parent;
   }
-  /**
-   * 获取文件名
-   */
-  public getFileName(node: TreeNode): string {
-    return encodeURIComponent(node.title)
+  private getFileNameInner(name: string): string {
+    return encodeURIComponent(name)
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
+  }
+  private getNameFromPath(path: string) {
+    let name = basename(path, extname(path));
+    name = name.split(' ').pop() as string;
+    return name;
+  }
+  /**
+   * 获取文件名
+   */
+  public getFileName(node: TreeNode): string {
+    let name = node.path;
+    if (name) {
+      name = this.getNameFromPath(name);
+    } else {
+      name = node.title;
+    }
+    return this.getFileNameInner(name);
   }
 }
