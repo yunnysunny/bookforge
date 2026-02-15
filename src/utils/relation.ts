@@ -16,10 +16,7 @@ export class RelationManager {
   }
   addRelation(relation: Relation) {
     const { parentId, ...rest } = relation;
-    this.parent2Children.set(parentId, [
-      ...(this.parent2Children.get(parentId) || []),
-      rest,
-    ]);
+    this.parent2Children.set(parentId, [...(this.parent2Children.get(parentId) || []), rest]);
   }
   getTopEntities(): ParentId[] {
     const map = new Map(this.parent2Children);

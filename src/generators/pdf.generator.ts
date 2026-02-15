@@ -45,10 +45,7 @@ export class PdfGenerator extends AbstractGenerator {
   /**
    * 生成目录项目
    */
-  private async generateTocItems(
-    nodes: TreeNode[],
-    level: number,
-  ): Promise<string> {
+  private async generateTocItems(nodes: TreeNode[], level: number): Promise<string> {
     //     let html = '<ul class="toc-list">';
 
     //     for (const node of nodes) {
@@ -74,10 +71,7 @@ export class PdfGenerator extends AbstractGenerator {
     return html;
   }
 
-  private async generateHtmlData(
-    tree: TreeNode,
-    data: HtmlData[],
-  ): Promise<void> {
+  private async generateHtmlData(tree: TreeNode, data: HtmlData[]): Promise<void> {
     for (const child of tree.children) {
       if (child.content) {
         data.push({
