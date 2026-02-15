@@ -68,6 +68,7 @@
     "@types/node": "^24.10.1",
     "@types/unzipper": "^0.10.11",
     "@vitest/coverage-v8": "^4.0.12",
+    "cheerio": "^1.2.0",
     "cpx": "^1.5.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",

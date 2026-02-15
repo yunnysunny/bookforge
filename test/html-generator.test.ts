@@ -2,6 +2,7 @@
 
 import { writeFileSync } from 'fs';
 import path from 'path';
+import * as cheerio from 'cheerio';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HtmlGenerator } from '../src/generators/html.generator';
 import type { BookForgeConfig, Heading, TreeNode } from '../src/types';
@@ -100,10 +101,10 @@ describe('HtmlGenerator', () => {
       };
 
       const html = await (generator as unknown as MockHtmlGenerator).generateSinglePageHtml(page);
-
+      const $ = cheerio.load(html);
       expect(html).toContain('<!DOCTYPE html>');
       expect(html).toContain('<title>测试文档</title>');
-      expect(html).toContain('<h1>测试文档</h1>');
+      expect($('h1').text().trim()).toBe('测试');
       expect(html).toContain('<link rel="stylesheet" href="styles.css">');
       expect(html).toContain('<script src="script.js"></script>');
     });
