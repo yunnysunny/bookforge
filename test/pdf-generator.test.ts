@@ -223,9 +223,7 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const html = await (
-        generator as unknown as MockPdfGenerator
-      ).generateHtmlContent(mockTree);
+      const html = await (generator as unknown as MockPdfGenerator).generateHtmlContent(mockTree);
 
       expect(html).toContain('文档1');
       expect(html).toContain('文档2');
@@ -252,9 +250,7 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const html = await (
-        generator as unknown as MockPdfGenerator
-      ).generateHtmlContent(mockTree);
+      const html = await (generator as unknown as MockPdfGenerator).generateHtmlContent(mockTree);
 
       expect(html).toContain('<div class="page-break"></div>');
     });
@@ -282,9 +278,9 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const toc = await (
-        generator as unknown as MockPdfGenerator
-      ).generateTableOfContents(mockTree);
+      const toc = await (generator as unknown as MockPdfGenerator).generateTableOfContents(
+        mockTree,
+      );
 
       expect(toc).toContain('<ul class="toc-list">');
       expect(toc).toContain('文档1');
@@ -313,9 +309,9 @@ describe('PdfGenerator', () => {
         ],
       };
 
-      const toc = await (
-        generator as unknown as MockPdfGenerator
-      ).generateTableOfContents(mockTree);
+      const toc = await (generator as unknown as MockPdfGenerator).generateTableOfContents(
+        mockTree,
+      );
 
       expect(toc).toContain('主文档');
       expect(toc).toContain('子文档');

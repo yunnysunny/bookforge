@@ -2,6 +2,7 @@
 
 import { writeFileSync } from 'fs';
 import path from 'path';
+import * as cheerio from 'cheerio';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HtmlGenerator } from '../src/generators/html.generator';
 import type { BookForgeConfig, Heading, TreeNode } from '../src/types';
@@ -99,13 +100,11 @@ describe('HtmlGenerator', () => {
         children: [],
       };
 
-      const html = await (
-        generator as unknown as MockHtmlGenerator
-      ).generateSinglePageHtml(page);
-
+      const html = await (generator as unknown as MockHtmlGenerator).generateSinglePageHtml(page);
+      const $ = cheerio.load(html);
       expect(html).toContain('<!DOCTYPE html>');
       expect(html).toContain('<title>测试文档</title>');
-      expect(html).toContain('<h1>测试文档</h1>');
+      expect($('h1').text().trim()).toBe('测试');
       expect(html).toContain('<link rel="stylesheet" href="styles.css">');
       expect(html).toContain('<script src="script.js"></script>');
     });
@@ -127,9 +126,9 @@ describe('HtmlGenerator', () => {
         },
       ];
 
-      const html = await (
-        generator as unknown as MockHtmlGenerator
-      ).generateTableOfContents(mockHeadings);
+      const html = await (generator as unknown as MockHtmlGenerator).generateTableOfContents(
+        mockHeadings,
+      );
 
       expect(html).toContain('<ul class="toc-list">');
       expect(html).toContain('主标题');
@@ -167,9 +166,7 @@ describe('HtmlGenerator', () => {
         ],
       };
 
-      const sidebar = await (
-        generator as unknown as MockHtmlGenerator
-      ).generateSidebar(mockTree);
+      const sidebar = await (generator as unknown as MockHtmlGenerator).generateSidebar(mockTree);
 
       expect(sidebar).toContain('文档1');
       expect(sidebar).toContain('子文档1');
@@ -209,9 +206,9 @@ describe('HtmlGenerator', () => {
         },
       ];
 
-      const toc = await (
-        generator as unknown as MockHtmlGenerator
-      ).generateTableOfContents(mockHeadings);
+      const toc = await (generator as unknown as MockHtmlGenerator).generateTableOfContents(
+        mockHeadings,
+      );
 
       expect(toc).toContain('<ul class="toc-list">');
       expect(toc).toContain('主标题');

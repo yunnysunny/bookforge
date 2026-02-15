@@ -9,8 +9,7 @@ import type { Stats } from 'fs';
 
 // Mock fs/promises 模块，但提供默认实现调用真实模块
 vi.mock('fs/promises', async () => {
-  const actual =
-    await vi.importActual<typeof import('fs/promises')>('fs/promises');
+  const actual = await vi.importActual<typeof import('fs/promises')>('fs/promises');
   return {
     ...actual,
     readdir: vi.fn(),
@@ -36,8 +35,7 @@ describe('GitbookParser', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     // 恢复 fs/promises 的默认实现
-    const actual =
-      await vi.importActual<typeof import('fs/promises')>('fs/promises');
+    const actual = await vi.importActual<typeof import('fs/promises')>('fs/promises');
     const fsPromisesMock = await import('fs/promises');
     vi.mocked(fsPromisesMock.readdir).mockImplementation(actual.readdir);
     vi.mocked(fsPromisesMock.stat).mockImplementation(actual.stat);
@@ -47,10 +45,7 @@ describe('GitbookParser', () => {
     });
   });
 
-  async function getResult(
-    folder: string,
-    options: ParserOptions = defaultOptions,
-  ) {
+  async function getResult(folder: string, options: ParserOptions = defaultOptions) {
     const parser = new GitbookParser(options);
     const result = await parser.parse(path.join(__dirname, folder));
     return result;
@@ -87,14 +82,12 @@ describe('GitbookParser', () => {
 
     it('应该处理解析失败的文件', async () => {
       const originalReadFile = utils.readFile;
-      vi.spyOn(utils, 'readFile').mockImplementation(
-        async (filename, options) => {
-          if (filename.toString().endsWith('error.md')) {
-            throw new Error('文件读取错误');
-          }
-          return await originalReadFile.call(utils, filename, options);
-        },
-      );
+      vi.spyOn(utils, 'readFile').mockImplementation(async (filename, options) => {
+        if (filename.toString().endsWith('error.md')) {
+          throw new Error('文件读取错误');
+        }
+        return await originalReadFile.call(utils, filename, options);
+      });
 
       const result = await getResult('./fixtures/with-error');
 
@@ -184,16 +177,10 @@ describe('GitbookParser', () => {
         .mockResolvedValueOnce(fileStat); // README.md 是文件
 
       readdirMock
-        .mockResolvedValueOnce([
-          'test.md',
-          'subdir',
-          'README.md',
-        ] as unknown as any)
+        .mockResolvedValueOnce(['test.md', 'subdir', 'README.md'] as unknown as any)
         .mockResolvedValueOnce(['subtest.md'] as unknown as any);
 
-      const result = (await (parser as any).getMarkdownFiles(
-        './docs',
-      )) as string[];
+      const result = (await (parser as any).getMarkdownFiles('./docs')) as string[];
 
       expect(result.map((item) => item.replace(/\\/g, '/'))).toEqual([
         expect.stringContaining('docs/test.md'),
@@ -211,11 +198,7 @@ describe('GitbookParser', () => {
       readdirMock.mockClear();
       statMock.mockClear();
 
-      readdirMock.mockResolvedValue([
-        'test.txt',
-        'test.md',
-        'test.html',
-      ] as unknown as any);
+      readdirMock.mockResolvedValue(['test.txt', 'test.md', 'test.html'] as unknown as any);
       statMock.mockImplementation(async () => fileStat);
 
       const result = await (parser as any).getMarkdownFiles('./docs');

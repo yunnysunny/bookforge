@@ -66,11 +66,10 @@ export class HtmlGenerator extends AbstractGenerator {
    * 生成 HTML 模板
    */
   private async generateSinglePageHtml(node: TreeNode): Promise<string> {
-    const toc = node.headings
-      ? await this.generateTableOfContents(node.headings)
-      : '';
+    const toc = node.headings ? await this.generateTableOfContents(node.headings) : '';
     const htmlContent = await this.bookParser.toHtml(node);
     const html = await this.render('page.ejs', {
+      bookTitle: this.title,
       title: node.title,
       sidebar: this.sidebar,
       toc,
@@ -90,10 +89,7 @@ export class HtmlGenerator extends AbstractGenerator {
   /**
    * 生成侧边栏项目
    */
-  private async generateSidebarItems(
-    nodes: TreeNode[],
-    level: number,
-  ): Promise<string> {
+  private async generateSidebarItems(nodes: TreeNode[], level: number): Promise<string> {
     //     let html = '';
 
     //     for (const node of nodes) {
@@ -133,10 +129,7 @@ export class HtmlGenerator extends AbstractGenerator {
   /**
    * 生成目录项目
    */
-  private async generateTocItems(
-    headings: Heading[],
-    level: number,
-  ): Promise<string> {
+  private async generateTocItems(headings: Heading[], level: number): Promise<string> {
     //     let html = '<ul class="toc-list">';
 
     //     for (const heading of headings) {
@@ -159,10 +152,7 @@ export class HtmlGenerator extends AbstractGenerator {
     return html;
   }
   private async copyFile(src: string, dest: string): Promise<void> {
-    await copyFile(
-      join(__dirname, 'static/html', src),
-      join(this.outputDir, dest),
-    );
+    await copyFile(join(__dirname, 'static/html', src), join(this.outputDir, dest));
   }
 
   /**

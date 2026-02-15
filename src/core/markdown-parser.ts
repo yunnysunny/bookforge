@@ -4,14 +4,16 @@ import { copyFile } from 'fs/promises';
 import { marked, type Token, type Tokens, Marked } from 'marked';
 import { basename, dirname, extname, join } from 'path';
 import type { Env, Heading, MarkdownFile } from '../types/index.js';
-import {
-  generateIdFromText,
-  isMarkdownFile,
-  mkdirAsync,
-  readFile,
-} from '../utils';
+import { generateIdFromText, isMarkdownFile, mkdirAsync, readFile } from '../utils';
 import { gitbookExtension } from './marked-plugins/gitbook.plugin.js';
 import { katexExtension } from './marked-plugins/katex.plugin.js';
+import { gitbookTabExtension } from './marked-plugins/gitbook-tab.plugin.js';
+import { gitbookStepperExtension } from './marked-plugins/gitbook-stepper.plugin.js';
+import {
+  gitbookIncludeExtension,
+  type GitbookIncludeToken,
+  IncludeTokenType,
+} from './marked-plugins/gitbook-include.plugin.js';
 
 const renderer = new marked.Renderer();
 renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
@@ -43,7 +45,10 @@ export class MarkdownParser {
       renderer,
     });
     this.marked.use(gitbookExtension);
+    this.marked.use(gitbookTabExtension);
+    this.marked.use(gitbookStepperExtension);
     this.marked.use(katexExtension);
+    this.marked.use(gitbookIncludeExtension);
   }
 
   /**
@@ -133,6 +138,41 @@ export class MarkdownParser {
     return imageToPath;
   }
 
+  // /**
+  //  * 解析表格单元格中的链接
+  //  */
+  // private parseTableCellLinks(cell: Tokens.TableCell): void {
+  //   // 如果单元格内容只是纯文本且包含链接格式，则解析为链接
+  //   if (cell.tokens.length === 1 && cell.tokens[0].type === 'text') {
+  //     const textToken = cell.tokens[0] as Tokens.Text;
+  //     const linkMatch = textToken.text.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+  //     if (linkMatch) {
+  //       let href = linkMatch[2];
+  //       if (isMarkdownFile(href)) {
+  //         const path = dirname(href);
+  //         const filename = basename(href, extname(href));
+  //         href = path === '.' ? `./${filename}.html` : `${path}/${filename}.html`;
+  //       }
+  //       // 将文本 token 替换为链接 token
+  //       const linkToken: Tokens.Link = {
+  //         type: 'link',
+  //         raw: textToken.raw,
+  //         href,
+  //         title: null,
+  //         text: linkMatch[1],
+  //         tokens: [
+  //           {
+  //             type: 'text',
+  //             raw: linkMatch[1],
+  //             text: linkMatch[1],
+  //           },
+  //         ],
+  //       };
+  //       cell.tokens = [linkToken];
+  //     }
+  //   }
+  // }
+
   /**
    * 将 markdown 转换为 HTML
    */
@@ -159,6 +199,10 @@ export class MarkdownParser {
           }
         } else if (token.type === 'link') {
           const href = token.href;
+          // 检查 href 是否存在
+          if (!href) {
+            return;
+          }
           if (href.startsWith('http') || href.startsWith('https')) {
             return;
           }
@@ -168,7 +212,8 @@ export class MarkdownParser {
           }
           const path = dirname(href);
           const filename = basename(href, extname(href));
-          const link = `${path}/${filename}.html`;
+          // 确保路径格式正确：如果 path 是 '.'，则使用相对路径
+          const link = path === '.' ? `./${filename}.html` : `${path}/${filename}.html`;
           token.href = link;
         } else if (token.type === 'code') {
           // 处理 mermaid 代码块
@@ -183,6 +228,13 @@ ${diagram}
             // 如果没有指定语言，设置为 plain text
             codeToken.lang = 'plain';
           }
+        } else if (token.type === IncludeTokenType) {
+          const includeToken = token as GitbookIncludeToken;
+          const includeContent = await readFile(
+            join(dirname(options.contentPath), includeToken.path),
+          );
+          token.type = 'html';
+          token.text = await this.toHtml(includeContent, options);
         }
       },
     });
