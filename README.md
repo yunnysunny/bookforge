@@ -59,7 +59,12 @@ pnpm test
 
 ## TODO
 - [x] 支持notion导出压缩包解析
+- [x] 支持 notion database 解析
 - [x] 支持 mermaid 语法
+
+## 已知问题
+### notion database 标题重名问题
+在 notion database 中，如果多个页面有相同的标题，则相同的标题的页面会展示成同一个。所以如果想导出的 database 正常渲染，请确保每个页面的标题都是唯一的。
 
 ## 许可证
 
