@@ -1,9 +1,16 @@
 // HTML 生成器
 
-import { copyFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { copyFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 // import { fileURLToPath } from 'url';
-import type { BookForgeConfig, Heading, TreeNode } from '../types/index.js';
+import type {
+  BookForgeConfig,
+  Heading,
+  SearchIndexDocument,
+  SearchIndexEntry,
+  SearchIndexHeading,
+  TreeNode,
+} from '../types/index.js';
 import { AbstractGenerator } from './abstract.generator.js';
 
 export class HtmlGenerator extends AbstractGenerator {
@@ -21,6 +28,9 @@ export class HtmlGenerator extends AbstractGenerator {
 
     // 生成脚本文件
     await this.copyScripts();
+
+    // 生成全局搜索索引
+    await this.generateSearchIndex(treeRoot);
   }
   constructor(config: BookForgeConfig) {
     super(config);
@@ -167,5 +177,77 @@ export class HtmlGenerator extends AbstractGenerator {
    */
   private async copyScripts(): Promise<void> {
     await this.copyFile('script.js', 'script.js');
+  }
+
+  private async generateSearchIndex(treeRoot: TreeNode): Promise<void> {
+    const searchIndex: SearchIndexDocument = {
+      generatedAt: new Date().toISOString(),
+      pages: this.collectSearchIndexEntries(treeRoot),
+    };
+    await writeFile(
+      join(this.outputDir, 'search-index.json'),
+      JSON.stringify(searchIndex, null, 2),
+      'utf-8',
+    );
+  }
+
+  private collectSearchIndexEntries(treeRoot: TreeNode): SearchIndexEntry[] {
+    const pages: SearchIndexEntry[] = [];
+    let homeAssigned = false;
+    const visit = (node: TreeNode) => {
+      if (node.content) {
+        pages.push({
+          title: node.title,
+          url: homeAssigned ? `${this.getFileName(node)}.html` : 'index.html',
+          content: this.markdownToPlainText(node.content),
+          headings: this.flattenHeadings(node.headings || []),
+        });
+        homeAssigned = true;
+      }
+      for (const child of node.children) {
+        visit(child);
+      }
+    };
+
+    for (const node of treeRoot.children) {
+      visit(node);
+    }
+
+    return pages;
+  }
+
+  private flattenHeadings(headings: Heading[]): SearchIndexHeading[] {
+    const items: SearchIndexHeading[] = [];
+    const visit = (nodes: Heading[]) => {
+      for (const heading of nodes) {
+        items.push({
+          id: heading.id,
+          text: heading.text,
+          level: heading.level,
+        });
+        visit(heading.children);
+      }
+    };
+    visit(headings);
+    return items;
+  }
+
+  private markdownToPlainText(markdown: string): string {
+    return markdown
+      .replace(/\r\n?/g, '\n')
+      .replace(/^---[\s\S]*?\n---\n?/m, ' ')
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, ' $1 ')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, ' $1 ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+      .replace(/^\s{0,3}>\s?/gm, '')
+      .replace(/^\s*[-*+]\s+/gm, '')
+      .replace(/^\s*\d+\.\s+/gm, '')
+      .replace(/[*_~|]/g, ' ')
+      .replace(/\n+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 }

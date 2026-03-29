@@ -20,6 +20,25 @@ export interface TreeNode {
   headings?: Heading[];
   children: TreeNode[];
 }
+
+export interface SearchIndexHeading {
+  id: string;
+  text: string;
+  level: number;
+}
+
+export interface SearchIndexEntry {
+  title: string;
+  url: string;
+  content: string;
+  headings: SearchIndexHeading[];
+}
+
+export interface SearchIndexDocument {
+  generatedAt: string;
+  pages: SearchIndexEntry[];
+}
+
 export type ParserMode = 'gitbook' | 'notion';
 export type Env = 'html' | 'pdf';
 export interface BookForgeConfig {
