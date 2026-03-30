@@ -49,9 +49,7 @@ export async function generateEmbeddingVectors(
       headings: page.headings,
       content: page.content,
       vector: values,
-      id: createHash('sha256')
-        .update(`${page.url}\n${page.title}\n${page.content}`)
-        .digest('hex'),
+      id: createHash('sha256').update(`${page.url}\n${page.title}\n${page.content}`).digest('hex'),
     });
   }
 
