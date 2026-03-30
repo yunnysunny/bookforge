@@ -6,15 +6,18 @@ import { join } from 'node:path';
 import type {
   BookForgeConfig,
   Heading,
+  SearchEmbeddingDocument,
   SearchIndexDocument,
   SearchIndexEntry,
   SearchIndexHeading,
   TreeNode,
 } from '../types/index.js';
+import { generateEmbeddingIndex } from '../embeddings/onnx-embedding.js';
 import { AbstractGenerator } from './abstract.generator.js';
 
 export class HtmlGenerator extends AbstractGenerator {
   private sidebar: string = '';
+  private readonly config: BookForgeConfig;
   protected async doGenerate(treeRoot: TreeNode): Promise<void> {
     this.sidebar = await this.generateSidebar(treeRoot);
     // 生成主页面
@@ -30,11 +33,14 @@ export class HtmlGenerator extends AbstractGenerator {
     await this.copyScripts();
 
     // 生成全局搜索索引
-    await this.generateSearchIndex(treeRoot);
+    const pages = this.collectSearchIndexEntries(treeRoot);
+    await this.generateSearchIndex(pages);
+    await this.generateEmbeddings(pages);
   }
   constructor(config: BookForgeConfig) {
     super(config);
     this.name = 'html';
+    this.config = config;
   }
 
   /**
@@ -179,14 +185,28 @@ export class HtmlGenerator extends AbstractGenerator {
     await this.copyFile('script.js', 'script.js');
   }
 
-  private async generateSearchIndex(treeRoot: TreeNode): Promise<void> {
+  private async generateSearchIndex(pages: SearchIndexEntry[]): Promise<void> {
     const searchIndex: SearchIndexDocument = {
       generatedAt: new Date().toISOString(),
-      pages: this.collectSearchIndexEntries(treeRoot),
+      pages,
     };
     await writeFile(
       join(this.outputDir, 'search-index.json'),
       JSON.stringify(searchIndex, null, 2),
+      'utf-8',
+    );
+  }
+
+  private async generateEmbeddings(pages: SearchIndexEntry[]): Promise<void> {
+    if (!this.config.embedding?.enabled) {
+      return;
+    }
+
+    const embeddingConfig = this.config.embedding;
+    const document: SearchEmbeddingDocument = await generateEmbeddingIndex(pages, embeddingConfig);
+    await writeFile(
+      join(this.outputDir, embeddingConfig.output || 'search-embeddings.json'),
+      JSON.stringify(document, null, 2),
       'utf-8',
     );
   }

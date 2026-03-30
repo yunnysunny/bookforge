@@ -1,13 +1,20 @@
 // HtmlGenerator 测试
 
-import { writeFileSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { existsSync, writeFileSync } from 'node:fs';
+import { readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import * as cheerio from 'cheerio';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HtmlGenerator } from '../src/generators/html.generator';
-import type { BookForgeConfig, Heading, SearchIndexDocument, TreeNode } from '../src/types';
+import type {
+  BookForgeConfig,
+  Heading,
+  SearchEmbeddingDocument,
+  SearchIndexDocument,
+  TreeNode,
+} from '../src/types';
 import { GitbookParser } from '../src/core/book-parsers/gitbook.parser';
+import * as onnxEmbedding from '../src/embeddings/onnx-embedding';
 
 // 模拟 fs 模块
 // jest.mock('fs');
@@ -94,6 +101,75 @@ describe('HtmlGenerator', () => {
         id: '安装',
         level: 2,
         text: '安装',
+      });
+      expect(existsSync(path.join(mockOutputDir, 'search-embeddings.json'))).toBe(false);
+    });
+
+    it('开启 embedding 后应该生成向量文件', async () => {
+      const embeddingGenerator = new HtmlGenerator({
+        ...defaultOptions,
+        embedding: {
+          enabled: true,
+          model: 'test-model',
+          output: 'search-embeddings.json',
+        },
+      });
+      const mockTree: TreeNode = {
+        title: 'Root',
+        children: [
+          {
+            title: '介绍',
+            path: './introduction.md',
+            content: '# 介绍\n\n欢迎使用 GitBook 解析器！',
+            headings: [
+              {
+                level: 1,
+                text: '介绍',
+                id: '介绍',
+                children: [],
+              },
+            ],
+            children: [],
+          },
+        ],
+      };
+
+      vi.spyOn(GitbookParser.prototype, 'parse').mockResolvedValue(mockTree);
+      vi.spyOn(onnxEmbedding, 'generateEmbeddingIndex').mockResolvedValue({
+        generatedAt: '2026-03-29T00:00:00.000Z',
+        model: 'test-model',
+        dimensions: 3,
+        entries: [
+          {
+            id: 'vector-1',
+            title: '介绍',
+            url: 'index.html',
+            content: '欢迎使用 GitBook 解析器！',
+            headings: [
+              {
+                level: 1,
+                text: '介绍',
+                id: '介绍',
+              },
+            ],
+            vector: [0.1, 0.2, 0.3],
+          },
+        ],
+      });
+
+      await embeddingGenerator.generate();
+
+      const embeddingIndex = JSON.parse(
+        await readFile(path.join(mockOutputDir, 'search-embeddings.json'), 'utf-8'),
+      ) as SearchEmbeddingDocument;
+      expect(embeddingIndex.model).toBe('test-model');
+      expect(embeddingIndex.dimensions).toBe(3);
+      expect(embeddingIndex.entries).toHaveLength(1);
+      expect(embeddingIndex.entries[0]).toMatchObject({
+        id: 'vector-1',
+        title: '介绍',
+        url: 'index.html',
+        vector: [0.1, 0.2, 0.3],
       });
     });
 
@@ -239,5 +315,9 @@ describe('HtmlGenerator', () => {
       expect(toc).toContain('三级标题');
       expect(toc).toContain('另一个主标题');
     });
+  });
+
+  afterEach(async () => {
+    await rm(mockOutputDir, { recursive: true, force: true });
   });
 });
