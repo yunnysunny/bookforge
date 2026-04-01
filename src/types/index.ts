@@ -20,46 +20,6 @@ export interface TreeNode {
   headings?: Heading[];
   children: TreeNode[];
 }
-
-export interface SearchIndexHeading {
-  id: string;
-  text: string;
-  level: number;
-}
-
-export interface SearchIndexEntry {
-  title: string;
-  url: string;
-  content: string;
-  headings: SearchIndexHeading[];
-}
-
-export interface SearchIndexDocument {
-  generatedAt: string;
-  pages: SearchIndexEntry[];
-}
-
-export interface EmbeddingConfig {
-  enabled?: boolean;
-  provider?: 'onnx';
-  model: string;
-  output: string;
-  quantized?: boolean;
-  batchSize?: number;
-}
-
-export interface SearchEmbeddingEntry extends SearchIndexEntry {
-  id: string;
-  vector: number[];
-}
-
-export interface SearchEmbeddingDocument {
-  generatedAt: string;
-  model: string;
-  dimensions: number;
-  entries: SearchEmbeddingEntry[];
-}
-
 export type ParserMode = 'gitbook' | 'notion';
 export type Env = 'html' | 'pdf';
 export interface BookForgeConfig {
@@ -70,7 +30,6 @@ export interface BookForgeConfig {
   title?: string;
   author?: string;
   skip?: string[];
-  embedding?: EmbeddingConfig;
 }
 
 export interface ParserOptions {

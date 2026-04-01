@@ -3,10 +3,10 @@
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { join } from 'node:path';
 import { HtmlGenerator } from './generators/html.generator.js';
 import { PdfGenerator } from './generators/pdf.generator.js';
-import type { BookForgeConfig, EmbeddingConfig } from './types/index.js';
+import type { BookForgeConfig } from './types/index.js';
+import { join } from 'path';
 
 const program = new Command();
 const currentWorkingDir = process.cwd();
@@ -23,31 +23,7 @@ const addCommonOpts = (cmd: Command, outputDefault: string) =>
     .option('-s, --skip [skip]', '忽略的目录')
     .option('-t, --title <title>', '文档标题', 'BookForge');
 
-const addEmbeddingOpts = (cmd: Command) =>
-  cmd
-    .option('--embedding', '开启 embedding 生成')
-    .option('--embedding-model <model>', 'ONNX embedding 模型', 'Xenova/all-MiniLM-L6-v2')
-    .option('--embedding-output <file>', 'embedding 输出文件名', 'embedding-index.json')
-    .option('--embedding-batch-size <size>', 'embedding 批大小', '8');
-
-function createEmbeddingConfig(options: Record<string, unknown>): EmbeddingConfig | undefined {
-  if (!options.embedding) {
-    return undefined;
-  }
-
-  const batchSizeRaw = Number(options.embeddingBatchSize);
-  const batchSize = Number.isFinite(batchSizeRaw) && batchSizeRaw > 0 ? batchSizeRaw : 8;
-
-  return {
-    enabled: true,
-    provider: 'onnx',
-    model: String(options.embeddingModel || 'Xenova/all-MiniLM-L6-v2'),
-    output: String(options.embeddingOutput || 'embedding-index.json'),
-    batchSize,
-  };
-}
-
-addEmbeddingOpts(addCommonOpts(program.command('html'), './dist/html'))
+addCommonOpts(program.command('html'), './dist/html')
   .description('生成 HTML 网站')
   .action(async (options) => {
     try {
@@ -58,7 +34,6 @@ addEmbeddingOpts(addCommonOpts(program.command('html'), './dist/html'))
         output: options.output,
         format: 'html',
         title: options.title,
-        embedding: createEmbeddingConfig(options),
       };
       await generateHtml(config);
     } catch (error) {
@@ -86,7 +61,7 @@ addCommonOpts(program.command('pdf'), './dist/pdf')
     }
   });
 
-addEmbeddingOpts(addCommonOpts(program.command('all'), './dist'))
+addCommonOpts(program.command('all'), './dist')
   .description('同时生成 HTML 网站和 PDF 文件')
   .action(async (options) => {
     try {
@@ -97,7 +72,6 @@ addEmbeddingOpts(addCommonOpts(program.command('all'), './dist'))
         output: `${options.output}/html`,
         format: 'html',
         title: options.title,
-        embedding: createEmbeddingConfig(options),
       };
 
       const pdfConfig: BookForgeConfig = {

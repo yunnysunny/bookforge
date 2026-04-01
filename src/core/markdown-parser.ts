@@ -1,8 +1,8 @@
 // Markdown 解析器
 
-import { copyFile } from 'node:fs/promises';
+import { copyFile } from 'fs/promises';
 import { marked, type Token, type Tokens, Marked } from 'marked';
-import { basename, dirname, extname, join } from 'node:path';
+import { basename, dirname, extname, join } from 'path';
 import type { Env, Heading, MarkdownFile } from '../types/index.js';
 import { generateIdFromText, isMarkdownFile, mkdirAsync, readFile } from '../utils';
 import { gitbookExtension } from './marked-plugins/gitbook.plugin.js';
@@ -67,23 +67,6 @@ export class MarkdownParser {
     };
   }
 
-  public toPlainText(content: string): string {
-    return content
-      .replace(/\r\n?/g, '\n')
-      .replace(/^---[\s\S]*?\n---\n?/m, ' ')
-      .replace(/```[\s\S]*?```/g, ' ')
-      .replace(/`([^`]+)`/g, '$1')
-      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      .replace(/^>\s?/gm, '')
-      .replace(/^#{1,6}\s+/gm, '')
-      .replace(/[*_~]/g, ' ')
-      .replace(/\|/g, ' ')
-      .replace(/\n+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
   /**
    * 提取标题结构
    */
@@ -129,7 +112,7 @@ export class MarkdownParser {
   /**
    * 提取文档标题
    */
-  private extractTitle(_content: string, headings: Heading[]): string {
+  private extractTitle(content: string, headings: Heading[]): string {
     // 优先使用第一个一级标题
     const firstH1 = headings.find((h) => h.level === 1);
     if (firstH1) {
