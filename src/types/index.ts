@@ -60,6 +60,21 @@ export interface SearchEmbeddingDocument {
   entries: SearchEmbeddingEntry[];
 }
 
+export interface GiscusConfig {
+  repo: string;
+  repoId: string;
+  category: string;
+  categoryId: string;
+  mapping?: string;
+  theme?: string;
+  lang?: string;
+}
+
+export interface NavLink {
+  text: string;
+  url: string;
+}
+
 export type ParserMode = 'gitbook' | 'notion';
 export type Env = 'html' | 'pdf';
 export interface BookForgeConfig {
@@ -71,6 +86,8 @@ export interface BookForgeConfig {
   author?: string;
   skip?: string[];
   embedding?: EmbeddingConfig;
+  giscus?: GiscusConfig;
+  navLinks?: NavLink[];
 }
 
 export interface ParserOptions {

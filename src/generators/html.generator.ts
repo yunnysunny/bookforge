@@ -183,6 +183,7 @@ export class HtmlGenerator extends AbstractGenerator {
    */
   private async copyScripts(): Promise<void> {
     await this.copyFile('script.js', 'script.js');
+    await this.copyFile('search-embedding.js', 'search-embedding.js');
   }
 
   private async generateSearchIndex(pages: SearchIndexEntry[]): Promise<void> {

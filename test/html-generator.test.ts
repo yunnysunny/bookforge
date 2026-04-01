@@ -204,7 +204,7 @@ describe('HtmlGenerator', () => {
       expect(html).toContain('<title>测试文档</title>');
       expect($('h1').text().trim()).toBe('测试');
       expect(html).toContain('<link rel="stylesheet" href="styles.css">');
-      expect(html).toContain('<script src="script.js"></script>');
+      expect(html).toContain('<script type="module" src="script.js"></script>');
       expect(html).toContain('class="search-results"');
     });
 
