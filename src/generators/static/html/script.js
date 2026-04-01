@@ -5,7 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
     links.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const targetId = this.getAttribute('href').substring(1);
+            const href = this.getAttribute('href') || '';
+            const targetId = href.substring(1);
             const targetElement = document.getElementById(targetId);
             if (targetElement) {
                 targetElement.scrollIntoView({
@@ -19,207 +20,396 @@ document.addEventListener('DOMContentLoaded', function() {
     // 侧边栏切换功能
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('sidebar');
-    
-    if (!sidebarToggle || !sidebar) {
-        return;
-    }
-    
-    // 从localStorage读取用户偏好
+    const hasSidebar = Boolean(sidebarToggle && sidebar);
     const STORAGE_KEY = 'sidebar-hidden';
-    
-    // 判断是否为移动端
+
     function isMobile() {
         return window.innerWidth <= 768;
     }
-    
-    // 切换侧边栏显示/隐藏
+
     function toggleSidebar() {
+        if (!hasSidebar) {
+            return;
+        }
         if (isMobile()) {
-            // 移动端：使用.open类控制显示
             sidebar.classList.toggle('open');
+            return;
+        }
+
+        const isCurrentlyHidden = sidebar.classList.contains('hidden');
+        if (isCurrentlyHidden) {
+            sidebar.classList.remove('hidden');
+            localStorage.setItem(STORAGE_KEY, 'false');
         } else {
-            // 桌面端：使用.hidden类控制显示，并保存到localStorage
-            const isCurrentlyHidden = sidebar.classList.contains('hidden');
-            
-            if (isCurrentlyHidden) {
-                sidebar.classList.remove('hidden');
-                localStorage.setItem(STORAGE_KEY, 'false');
-            } else {
-                sidebar.classList.add('hidden');
-                localStorage.setItem(STORAGE_KEY, 'true');
-            }
+            sidebar.classList.add('hidden');
+            localStorage.setItem(STORAGE_KEY, 'true');
         }
     }
-    
-    // 初始化侧边栏状态
+
     function initSidebar() {
+        if (!hasSidebar) {
+            return;
+        }
         if (isMobile()) {
-            // 移动端：默认隐藏
             sidebar.classList.remove('hidden');
             sidebar.classList.remove('open');
-        } else {
-            // 桌面端：根据localStorage决定
-            const savedState = localStorage.getItem(STORAGE_KEY);
-            if (savedState === 'true') {
-                sidebar.classList.add('hidden');
-            } else {
-                sidebar.classList.remove('hidden');
-            }
-            sidebar.classList.remove('open');
+            return;
         }
+
+        const savedState = localStorage.getItem(STORAGE_KEY);
+        if (savedState === 'true') {
+            sidebar.classList.add('hidden');
+        } else {
+            sidebar.classList.remove('hidden');
+        }
+        sidebar.classList.remove('open');
     }
-    
-    // 响应窗口大小变化
+
     function handleResize() {
         initSidebar();
     }
-    
-    // 绑定点击事件
-    sidebarToggle.addEventListener('click', toggleSidebar);
-    
-    // 初始化
-    initSidebar();
-    
-    // 监听窗口大小变化
-    window.addEventListener('resize', handleResize);
-    
+
+    if (hasSidebar) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        initSidebar();
+        window.addEventListener('resize', handleResize);
+    }
+
     // 右侧目录树（TOC）切换功能
     const tocToggle = document.getElementById('tocToggle');
     const toc = document.getElementById('toc');
-    
+
     if (tocToggle && toc) {
-        // 从localStorage读取TOC显示偏好
-        const TOC_STORAGE_KEY = 'toc-hidden';
-        
-        // 切换TOC显示/隐藏
+        const tocStorageKey = 'toc-hidden';
+
         function toggleToc() {
             const isCurrentlyHidden = toc.classList.contains('hidden');
-            
+
             if (isCurrentlyHidden) {
                 toc.classList.remove('hidden');
-                localStorage.setItem(TOC_STORAGE_KEY, 'false');
+                localStorage.setItem(tocStorageKey, 'false');
             } else {
                 toc.classList.add('hidden');
-                localStorage.setItem(TOC_STORAGE_KEY, 'true');
+                localStorage.setItem(tocStorageKey, 'true');
             }
         }
-        
-        // 初始化TOC状态
+
         function initToc() {
-            const savedState = localStorage.getItem(TOC_STORAGE_KEY);
+            const savedState = localStorage.getItem(tocStorageKey);
             if (savedState === 'true') {
                 toc.classList.add('hidden');
             } else {
                 toc.classList.remove('hidden');
             }
         }
-        
-        // 绑定点击事件
+
         tocToggle.addEventListener('click', toggleToc);
-        
-        // 初始化
         initToc();
     }
-    
-    // 搜索功能
+
+    // 全局搜索功能
     const searchInput = document.getElementById('searchInput');
-    
-    if (searchInput) {
+    const searchResults = document.getElementById('searchResults');
+
+    if (searchInput instanceof HTMLInputElement && searchResults) {
+        const maxResults = 8;
         let searchTimeout;
-        
-        // 搜索功能
-        function performSearch() {
-            const query = searchInput.value.trim().toLowerCase();
-            
-            // 在当前页面内容中搜索
-            const contentBody = document.querySelector('.content-body');
-            if (!contentBody) {
+        let activeIndex = -1;
+        let searchIndexPromise;
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function escapeRegExp(value) {
+            return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function highlightText(text, query) {
+            if (!query) {
+                return escapeHtml(text);
+            }
+            const regex = new RegExp(`(${escapeRegExp(query)})`, 'ig');
+            return escapeHtml(text).replace(regex, '<mark class="search-highlight">$1</mark>');
+        }
+
+        function normalizeText(text) {
+            return text.toLowerCase().replace(/\s+/g, ' ').trim();
+        }
+
+        function buildSnippet(content, query) {
+            if (!content) {
+                return '未提取到正文内容';
+            }
+
+            const normalizedContent = content.replace(/\s+/g, ' ').trim();
+            if (!query) {
+                return normalizedContent.slice(0, 120);
+            }
+
+            const lowerContent = normalizedContent.toLowerCase();
+            const lowerQuery = query.toLowerCase();
+            const matchIndex = lowerContent.indexOf(lowerQuery);
+
+            if (matchIndex === -1) {
+                return normalizedContent.slice(0, 120);
+            }
+
+            const start = Math.max(0, matchIndex - 40);
+            const end = Math.min(normalizedContent.length, matchIndex + query.length + 80);
+            const prefix = start > 0 ? '...' : '';
+            const suffix = end < normalizedContent.length ? '...' : '';
+            return `${prefix}${normalizedContent.slice(start, end)}${suffix}`;
+        }
+
+        function flattenHeadingMatches(headings, query) {
+            const normalizedQuery = normalizeText(query);
+            return headings.filter((heading) => normalizeText(heading.text).includes(normalizedQuery));
+        }
+
+        function scoreEntry(entry, query) {
+            const normalizedQuery = normalizeText(query);
+            const titleText = normalizeText(entry.title);
+            const contentText = normalizeText(entry.content);
+            const headingMatches = flattenHeadingMatches(entry.headings || [], query);
+            let score = 0;
+
+            if (titleText.includes(normalizedQuery)) {
+                score += titleText === normalizedQuery ? 120 : 80;
+            }
+            if (headingMatches.length > 0) {
+                score += 40 + headingMatches.length * 8;
+            }
+            if (contentText.includes(normalizedQuery)) {
+                score += 20;
+            }
+
+            return {
+                score,
+                headingMatches
+            };
+        }
+
+        function setActiveResult(index) {
+            const items = searchResults.querySelectorAll('.search-result-item');
+            items.forEach((item, itemIndex) => {
+                item.classList.toggle('active', itemIndex === index);
+            });
+            activeIndex = index;
+        }
+
+        function closeSearchResults() {
+            searchResults.classList.remove('visible');
+            searchResults.innerHTML = '';
+            activeIndex = -1;
+        }
+
+        function renderSearchResults(results, query) {
+            if (!query) {
+                closeSearchResults();
                 return;
             }
-            
-            // 移除之前的高亮
-            const highlightedElements = contentBody.querySelectorAll('.search-highlight');
-            highlightedElements.forEach(el => {
-                const parent = el.parentNode;
-                parent.replaceChild(document.createTextNode(el.textContent), el);
-                parent.normalize();
-            });
-            
-            // 如果搜索词为空，不执行搜索
-            if (query === '') {
+
+            if (results.length === 0) {
+                searchResults.innerHTML = `
+                    <div class="search-empty-state">
+                        <div class="search-empty-title">未找到匹配结果</div>
+                        <div class="search-empty-subtitle">试试更短的关键词，或换一个标题/正文片段。</div>
+                    </div>
+                `;
+                searchResults.classList.add('visible');
+                activeIndex = -1;
                 return;
             }
-            
-            // 搜索并高亮
-            const walker = document.createTreeWalker(
-                contentBody,
-                NodeFilter.SHOW_TEXT,
-                null,
-                false
-            );
-            
-            const textNodes = [];
-            let node;
-            while (node = walker.nextNode()) {
-                if (node.textContent.toLowerCase().includes(query)) {
-                    textNodes.push(node);
-                }
+
+            searchResults.innerHTML = results.map((result, index) => {
+                const heading = result.headingMatches[0];
+                const resultUrl = heading ? `${result.url}#${heading.id}` : result.url;
+                const snippet = buildSnippet(result.content, query);
+
+                return `
+                    <a
+                        href="${resultUrl}"
+                        class="search-result-item"
+                        data-result-index="${index}"
+                    >
+                        <div class="search-result-header">
+                            <span class="search-result-title">${highlightText(result.title, query)}</span>
+                            <span class="search-result-url">${escapeHtml(result.url)}</span>
+                        </div>
+                        ${heading ? `
+                            <div class="search-result-heading">
+                                跳转到：${highlightText(heading.text, query)}
+                            </div>
+                        ` : ''}
+                        <div class="search-result-snippet">${highlightText(snippet, query)}</div>
+                    </a>
+                `;
+            }).join('');
+            searchResults.classList.add('visible');
+            setActiveResult(-1);
+        }
+
+        async function loadSearchIndex() {
+            if (!searchIndexPromise) {
+                searchIndexPromise = fetch('./search-index.json')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Failed to load search index: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => Array.isArray(data.pages) ? data.pages : [])
+                    .catch(error => {
+                        console.error(error);
+                        return [];
+                    });
             }
-            
-            // 高亮匹配的文本
-            textNodes.forEach(textNode => {
-                const text = textNode.textContent;
-                const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                const highlightedText = text.replace(regex, '<mark class="search-highlight">$1</mark>');
-                
-                if (highlightedText !== text) {
-                    const wrapper = document.createElement('span');
-                    wrapper.innerHTML = highlightedText;
-                    textNode.parentNode.replaceChild(wrapper, textNode);
-                    
-                    
+            return searchIndexPromise;
+        }
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            if (!query) {
+                closeSearchResults();
+                return;
+            }
+
+            searchResults.innerHTML = `
+                <div class="search-loading-state">正在检索全站内容...</div>
+            `;
+            searchResults.classList.add('visible');
+
+            const pages = await loadSearchIndex();
+            const rankedResults = pages
+                .map(entry => {
+                    const result = scoreEntry(entry, query);
+                    return {
+                        ...entry,
+                        ...result
+                    };
+                })
+                .filter(entry => entry.score > 0)
+                .sort((left, right) => right.score - left.score)
+                .slice(0, maxResults);
+
+            renderSearchResults(rankedResults, query);
+        }
+
+        function openActiveResult() {
+            if (activeIndex < 0) {
+                const firstResult = searchResults.querySelector('.search-result-item');
+                if (firstResult instanceof HTMLAnchorElement) {
+                    window.location.href = firstResult.href;
                 }
-            });
-            // 滚动到第一个匹配项
-            const firstMatch = document.querySelector('mark');
-            if (firstMatch) {
-                firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            const target = searchResults.querySelector(`[data-result-index="${activeIndex}"]`);
+            if (target instanceof HTMLAnchorElement) {
+                window.location.href = target.href;
             }
         }
-        
-        // 绑定搜索事件 - 使用防抖优化性能
+
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(performSearch, 300); // 300ms 防抖
+            searchTimeout = setTimeout(performSearch, 200);
         });
-        
-        // 按回车键立即搜索
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                clearTimeout(searchTimeout);
-                performSearch();
+
+        searchInput.addEventListener('keydown', function(event) {
+            const items = searchResults.querySelectorAll('.search-result-item');
+
+            if (event.key === 'ArrowDown') {
+                if (items.length === 0) {
+                    return;
+                }
+                event.preventDefault();
+                const nextIndex = activeIndex >= items.length - 1 ? 0 : activeIndex + 1;
+                setActiveResult(nextIndex);
+                return;
+            }
+
+            if (event.key === 'ArrowUp') {
+                if (items.length === 0) {
+                    return;
+                }
+                event.preventDefault();
+                const nextIndex = activeIndex <= 0 ? items.length - 1 : activeIndex - 1;
+                setActiveResult(nextIndex);
+                return;
+            }
+
+            if (event.key === 'Enter') {
+                if (searchInput.value.trim()) {
+                    event.preventDefault();
+                    openActiveResult();
+                }
+                return;
+            }
+
+            if (event.key === 'Escape') {
+                closeSearchResults();
+                searchInput.blur();
             }
         });
+
+        searchResults.addEventListener('mousemove', function(event) {
+            const target = event.target.closest('.search-result-item');
+            if (!target) {
+                return;
+            }
+            const index = Number(target.getAttribute('data-result-index'));
+            if (!Number.isNaN(index)) {
+                setActiveResult(index);
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            const target = event.target;
+            if (
+                target instanceof Node
+                && !searchResults.contains(target)
+                && target !== searchInput
+            ) {
+                closeSearchResults();
+            }
+        });
+
+        if (window.location.hash) {
+            const targetElement = document.getElementById(window.location.hash.slice(1));
+            if (targetElement) {
+                setTimeout(() => {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 100);
+            }
+        }
     }
-    
-    const tabs = document.querySelectorAll('.tab')
-    const panels = document.querySelectorAll('.tab-panel')
+
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('.tab-panel');
 
     tabs.forEach((tab, i) => {
         tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'))
-            panels.forEach(p => p.classList.remove('active'))
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
 
-            tab.classList.add('active')
-            panels[i].classList.add('active')
-        })
-    })
-    
+            tab.classList.add('active');
+            panels[i].classList.add('active');
+        });
+    });
+
     // 回到顶部功能
     const backToTop = document.getElementById('backToTop');
-    
+
     if (backToTop) {
-        // 监听滚动事件，显示/隐藏按钮
         function handleScroll() {
             if (window.pageYOffset > 300) {
                 backToTop.classList.add('show');
@@ -227,19 +417,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 backToTop.classList.remove('show');
             }
         }
-        
-        // 点击按钮，平滑滚动到顶部
+
         backToTop.addEventListener('click', function() {
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth'
             });
         });
-        
-        // 初始化时检查滚动位置
+
         handleScroll();
-        
-        // 监听滚动事件
         window.addEventListener('scroll', handleScroll);
     }
 });

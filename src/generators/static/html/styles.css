@@ -56,6 +56,102 @@ body {
     position: relative;
 }
 
+.search-results {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: min(420px, 80vw);
+    max-height: 70vh;
+    overflow-y: auto;
+    background: white;
+    color: #1f2933;
+    border-radius: 10px;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.24);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    padding: 8px;
+    display: none;
+    z-index: 1100;
+}
+
+.search-results.visible {
+    display: block;
+}
+
+.search-loading-state,
+.search-empty-state {
+    padding: 12px 14px;
+}
+
+.search-loading-state {
+    font-size: 0.9rem;
+    color: #52606d;
+}
+
+.search-empty-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #102a43;
+}
+
+.search-empty-subtitle {
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: #52606d;
+    line-height: 1.5;
+}
+
+.search-result-item {
+    display: block;
+    padding: 12px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.search-result-item + .search-result-item {
+    margin-top: 6px;
+}
+
+.search-result-item:hover,
+.search-result-item.active {
+    background: #f0f4f8;
+    transform: translateY(-1px);
+}
+
+.search-result-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.search-result-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #102a43;
+}
+
+.search-result-url,
+.search-result-heading {
+    margin-top: 4px;
+    font-size: 0.82rem;
+    color: #486581;
+}
+
+.search-result-url {
+    flex-shrink: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.search-result-snippet {
+    margin-top: 8px;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: #334e68;
+    word-break: break-word;
+}
+
 .search-icon {
     font-size: 16px;
     color: #95a5a6;
@@ -610,14 +706,6 @@ body {
   }
   
   
-/* 搜索高亮样式 */
-.search-highlight {
-    background-color: #ffeb3b;
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-weight: 500;
-}
-
 /* 响应式设计 - 中等屏幕：TOC显示在内容上方 */
 @media (max-width: 1024px) {
     .content-wrapper {
@@ -657,6 +745,12 @@ body {
     
     .search-input:focus {
         width: 180px;
+    }
+
+    .search-results {
+        width: min(320px, calc(100vw - 20px));
+        right: 0;
+        left: auto;
     }
     
     .sidebar {
