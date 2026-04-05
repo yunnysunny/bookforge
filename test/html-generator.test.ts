@@ -205,6 +205,13 @@ describe('HtmlGenerator', () => {
       expect(html).toContain('<link rel="stylesheet" href="styles.css">');
       expect(html).toContain('<script type="module" src="script.js"></script>');
       expect(html).toContain('class="search-results"');
+      expect($('#aiEntryButton').text().trim()).toBe('AI');
+      expect($('#aiChatPanel').attr('aria-hidden')).toBe('true');
+      expect($('.ai-chat-subtitle').text()).toContain('优先基于当前页面');
+      expect($('#aiBaseUrlInput').attr('placeholder')).toContain('https://api.openai.com/v1');
+      expect($('#aiApiKeyInput').attr('type')).toBe('password');
+      expect($('#aiModelInput').attr('placeholder')).toContain('gpt-4o-mini');
+      expect($('.ai-chat-context-tip').text()).toContain('当前页优先');
     });
 
     it('应该包含目录', async () => {

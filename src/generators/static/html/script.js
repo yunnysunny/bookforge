@@ -1,6 +1,69 @@
 // BookForge 客户端脚本 (ESM)
 
 let embeddingSearch = null;
+let searchIndexPromise = null;
+
+function normalizeText(text) {
+    return String(text || '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function flattenHeadingMatches(headings, query) {
+    const normalizedQuery = normalizeText(query);
+    return (headings || []).filter((heading) => normalizeText(heading.text).includes(normalizedQuery));
+}
+
+function scoreEntry(entry, query) {
+    const normalizedQuery = normalizeText(query);
+    const titleText = normalizeText(entry.title);
+    const contentText = normalizeText(entry.content);
+    const headingMatches = flattenHeadingMatches(entry.headings || [], query);
+    let score = 0;
+
+    if (titleText.includes(normalizedQuery)) {
+        score += titleText === normalizedQuery ? 120 : 80;
+    }
+    if (headingMatches.length > 0) {
+        score += 40 + headingMatches.length * 8;
+    }
+    if (contentText.includes(normalizedQuery)) {
+        score += 20;
+    }
+
+    return {
+        score,
+        headingMatches
+    };
+}
+
+async function loadSearchIndex() {
+    if (!searchIndexPromise) {
+        searchIndexPromise = fetch('./search-index.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to load search index: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => Array.isArray(data.pages) ? data.pages : [])
+            .catch(error => {
+                console.error(error);
+                return [];
+            });
+    }
+    return searchIndexPromise;
+}
+
+async function textSearch(query, maxResults = 8) {
+    const pages = await loadSearchIndex();
+    return pages
+        .map(entry => {
+            const result = scoreEntry(entry, query);
+            return { ...entry, ...result };
+        })
+        .filter(entry => entry.score > 0)
+        .sort((left, right) => right.score - left.score)
+        .slice(0, maxResults);
+}
 
 (async () => {
     try {
@@ -119,7 +182,6 @@ if (searchInput instanceof HTMLInputElement && searchResults) {
     const maxResults = 8;
     let searchTimeout;
     let activeIndex = -1;
-    let searchIndexPromise;
 
     function escapeHtml(text) {
         return text
@@ -140,10 +202,6 @@ if (searchInput instanceof HTMLInputElement && searchResults) {
         }
         const regex = new RegExp(`(${escapeRegExp(query)})`, 'ig');
         return escapeHtml(text).replace(regex, '<mark class="search-highlight">$1</mark>');
-    }
-
-    function normalizeText(text) {
-        return text.toLowerCase().replace(/\s+/g, ' ').trim();
     }
 
     function buildSnippet(content, query) {
@@ -169,34 +227,6 @@ if (searchInput instanceof HTMLInputElement && searchResults) {
         const prefix = start > 0 ? '...' : '';
         const suffix = end < normalizedContent.length ? '...' : '';
         return `${prefix}${normalizedContent.slice(start, end)}${suffix}`;
-    }
-
-    function flattenHeadingMatches(headings, query) {
-        const normalizedQuery = normalizeText(query);
-        return headings.filter((heading) => normalizeText(heading.text).includes(normalizedQuery));
-    }
-
-    function scoreEntry(entry, query) {
-        const normalizedQuery = normalizeText(query);
-        const titleText = normalizeText(entry.title);
-        const contentText = normalizeText(entry.content);
-        const headingMatches = flattenHeadingMatches(entry.headings || [], query);
-        let score = 0;
-
-        if (titleText.includes(normalizedQuery)) {
-            score += titleText === normalizedQuery ? 120 : 80;
-        }
-        if (headingMatches.length > 0) {
-            score += 40 + headingMatches.length * 8;
-        }
-        if (contentText.includes(normalizedQuery)) {
-            score += 20;
-        }
-
-        return {
-            score,
-            headingMatches
-        };
     }
 
     function setActiveResult(index) {
@@ -259,36 +289,6 @@ if (searchInput instanceof HTMLInputElement && searchResults) {
         setActiveResult(-1);
     }
 
-    async function loadSearchIndex() {
-        if (!searchIndexPromise) {
-            searchIndexPromise = fetch('./search-index.json')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Failed to load search index: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => Array.isArray(data.pages) ? data.pages : [])
-                .catch(error => {
-                    console.error(error);
-                    return [];
-                });
-        }
-        return searchIndexPromise;
-    }
-
-    async function textSearch(query) {
-        const pages = await loadSearchIndex();
-        return pages
-            .map(entry => {
-                const result = scoreEntry(entry, query);
-                return { ...entry, ...result };
-            })
-            .filter(entry => entry.score > 0)
-            .sort((left, right) => right.score - left.score)
-            .slice(0, maxResults);
-    }
-
     async function performSearch() {
         const query = searchInput.value.trim();
         if (!query) {
@@ -318,7 +318,7 @@ if (searchInput instanceof HTMLInputElement && searchResults) {
         }
 
         if (!results) {
-            results = await textSearch(query);
+            results = await textSearch(query, maxResults);
         }
 
         renderSearchResults(results, query);
@@ -414,6 +414,359 @@ if (searchInput instanceof HTMLInputElement && searchResults) {
             }, 100);
         }
     }
+}
+
+// 页面级 AI 问答
+const aiEntryButton = document.getElementById('aiEntryButton');
+const aiChatOverlay = document.getElementById('aiChatOverlay');
+const aiChatPanel = document.getElementById('aiChatPanel');
+const aiChatClose = document.getElementById('aiChatClose');
+const aiChatMessages = document.getElementById('aiChatMessages');
+const aiChatStatus = document.getElementById('aiChatStatus');
+const aiChatForm = document.getElementById('aiChatForm');
+const aiQuestionInput = document.getElementById('aiQuestionInput');
+const aiSendButton = document.getElementById('aiSendButton');
+const aiSaveConfigButton = document.getElementById('aiSaveConfigButton');
+const aiBaseUrlInput = document.getElementById('aiBaseUrlInput');
+const aiApiKeyInput = document.getElementById('aiApiKeyInput');
+const aiModelInput = document.getElementById('aiModelInput');
+const AI_STORAGE_KEYS = {
+    baseUrl: 'bookforge-ai-base-url',
+    apiKey: 'bookforge-ai-api-key',
+    model: 'bookforge-ai-model',
+};
+const AI_CONTEXT_LIMIT = 12000;
+const AI_SUPPLEMENT_LIMIT = 3;
+const AI_SUPPLEMENT_SNIPPET_LIMIT = 1200;
+
+if (
+    aiEntryButton
+    && aiChatOverlay
+    && aiChatPanel
+    && aiChatClose
+    && aiChatMessages
+    && aiChatStatus
+    && aiChatForm instanceof HTMLFormElement
+    && aiQuestionInput instanceof HTMLTextAreaElement
+    && aiSendButton instanceof HTMLButtonElement
+    && aiSaveConfigButton instanceof HTMLButtonElement
+    && aiBaseUrlInput instanceof HTMLInputElement
+    && aiApiKeyInput instanceof HTMLInputElement
+    && aiModelInput instanceof HTMLInputElement
+) {
+    let aiRequestPending = false;
+
+    function readAiConfig() {
+        return {
+            baseUrl: localStorage.getItem(AI_STORAGE_KEYS.baseUrl) || '',
+            apiKey: localStorage.getItem(AI_STORAGE_KEYS.apiKey) || '',
+            model: localStorage.getItem(AI_STORAGE_KEYS.model) || '',
+        };
+    }
+
+    function saveAiConfig() {
+        localStorage.setItem(AI_STORAGE_KEYS.baseUrl, aiBaseUrlInput.value.trim());
+        localStorage.setItem(AI_STORAGE_KEYS.apiKey, aiApiKeyInput.value.trim());
+        localStorage.setItem(AI_STORAGE_KEYS.model, aiModelInput.value.trim());
+        setAiStatus('配置已保存到当前浏览器。', 'success');
+    }
+
+    function syncAiConfigInputs() {
+        const config = readAiConfig();
+        aiBaseUrlInput.value = config.baseUrl;
+        aiApiKeyInput.value = config.apiKey;
+        aiModelInput.value = config.model;
+    }
+
+    function setAiStatus(message, state = 'info') {
+        aiChatStatus.textContent = message;
+        aiChatStatus.dataset.state = state;
+    }
+
+    function setAiSending(isSending) {
+        aiRequestPending = isSending;
+        aiSendButton.disabled = isSending;
+        aiQuestionInput.disabled = isSending;
+        aiBaseUrlInput.disabled = isSending;
+        aiApiKeyInput.disabled = isSending;
+        aiModelInput.disabled = isSending;
+        aiSaveConfigButton.disabled = isSending;
+        aiSendButton.textContent = isSending ? '发送中...' : '发送';
+    }
+
+    function appendAiMessage(role, content, options = {}) {
+        const wrapper = document.createElement('div');
+        wrapper.className = `ai-chat-message ai-chat-message-${role}`;
+        if (options.pending) {
+            wrapper.classList.add('is-pending');
+        }
+
+        const roleNode = document.createElement('div');
+        roleNode.className = 'ai-chat-message-role';
+        roleNode.textContent = role === 'user' ? '你' : 'AI';
+
+        const contentNode = document.createElement('div');
+        contentNode.className = 'ai-chat-message-content';
+        contentNode.textContent = content;
+
+        wrapper.appendChild(roleNode);
+        wrapper.appendChild(contentNode);
+        aiChatMessages.appendChild(wrapper);
+        aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+        return {
+            wrapper,
+            contentNode,
+        };
+    }
+
+    function setAiPanelOpen(isOpen) {
+        aiChatOverlay.hidden = !isOpen;
+        aiChatPanel.classList.toggle('open', isOpen);
+        aiChatPanel.setAttribute('aria-hidden', String(!isOpen));
+        document.body.classList.toggle('ai-chat-open', isOpen);
+        if (isOpen) {
+            setTimeout(() => {
+                aiQuestionInput.focus();
+            }, 0);
+        }
+    }
+
+    function normalizeAiBaseUrl(baseUrl) {
+        return baseUrl.trim().replace(/\/+$/, '');
+    }
+
+    function getCurrentDocumentContext() {
+        const contentBody = document.querySelector('.content-body');
+        const pageHeading = contentBody?.querySelector('h1');
+        const title = (pageHeading?.textContent || document.title || '').trim();
+        const rawText = (contentBody?.textContent || '')
+            .replace(/\r\n?/g, '\n')
+            .replace(/\n{3,}/g, '\n\n')
+            .replace(/[ \t]+\n/g, '\n')
+            .trim();
+        return {
+            title,
+            content: rawText.slice(0, AI_CONTEXT_LIMIT),
+        };
+    }
+
+    function getCurrentPageUrl() {
+        const pathname = window.location.pathname || '';
+        if (!pathname || pathname.endsWith('/')) {
+            return 'index.html';
+        }
+        return pathname.split('/').pop() || 'index.html';
+    }
+
+    function buildSupplementSnippet(content, query) {
+        const normalizedContent = String(content || '').replace(/\s+/g, ' ').trim();
+        if (!normalizedContent) {
+            return '';
+        }
+
+        if (!query) {
+            return normalizedContent.slice(0, AI_SUPPLEMENT_SNIPPET_LIMIT);
+        }
+
+        const lowerContent = normalizedContent.toLowerCase();
+        const lowerQuery = query.toLowerCase();
+        const matchIndex = lowerContent.indexOf(lowerQuery);
+        if (matchIndex === -1) {
+            return normalizedContent.slice(0, AI_SUPPLEMENT_SNIPPET_LIMIT);
+        }
+
+        const start = Math.max(0, matchIndex - 120);
+        const end = Math.min(
+            normalizedContent.length,
+            matchIndex + query.length + AI_SUPPLEMENT_SNIPPET_LIMIT,
+        );
+        return normalizedContent.slice(start, end);
+    }
+
+    async function getSupplementalContext(question) {
+        const currentPageUrl = getCurrentPageUrl();
+        const relatedEntries = await textSearch(question, AI_SUPPLEMENT_LIMIT + 2);
+        return relatedEntries
+            .filter(entry => entry.url !== currentPageUrl)
+            .slice(0, AI_SUPPLEMENT_LIMIT)
+            .map(entry => [
+                `文档标题：${entry.title}`,
+                `文档地址：${entry.url}`,
+                '相关片段：',
+                buildSupplementSnippet(entry.content, question),
+            ].join('\n'))
+            .join('\n\n---\n\n');
+    }
+
+    function extractAssistantText(data) {
+        const content = data?.choices?.[0]?.message?.content;
+        if (typeof content === 'string') {
+            return content.trim();
+        }
+        if (Array.isArray(content)) {
+            return content
+                .map(item => {
+                    if (typeof item === 'string') {
+                        return item;
+                    }
+                    return item?.text || '';
+                })
+                .join('\n')
+                .trim();
+        }
+        return '';
+    }
+
+    async function requestAiAnswer(question, config) {
+        const context = getCurrentDocumentContext();
+        if (!context.content) {
+            throw new Error('当前页面没有可用于问答的正文内容。');
+        }
+
+        const supplementalContext = await getSupplementalContext(question);
+
+        const response = await fetch(`${normalizeAiBaseUrl(config.baseUrl)}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${config.apiKey}`,
+            },
+            body: JSON.stringify({
+                model: config.model,
+                temperature: 0.2,
+                messages: [
+                    {
+                        role: 'system',
+                        content:
+                            '你是文档问答助手。请优先依据当前页面内容回答；如果当前页面信息不足，可以参考附带的全站相关片段。不得编造未提供的信息；如果上下文仍不足，请明确说明未找到答案。',
+                    },
+                    {
+                        role: 'user',
+                        content: [
+                            `页面标题：${context.title || '未命名页面'}`,
+                            '当前页面正文：',
+                            context.content,
+                            '',
+                            supplementalContext
+                                ? ['全站补充片段（仅在当前页不足时参考）：', supplementalContext].join('\n')
+                                : '全站补充片段：未找到相关内容',
+                            '',
+                            `用户问题：${question}`,
+                        ].join('\n'),
+                    },
+                ],
+            }),
+        });
+
+        if (!response.ok) {
+            let detail = '';
+            try {
+                const errorData = await response.json();
+                detail = errorData?.error?.message || '';
+            } catch {
+                detail = '';
+            }
+            throw new Error(detail || `AI 请求失败：HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const answer = extractAssistantText(data);
+        if (!answer) {
+            throw new Error('AI 返回内容为空。');
+        }
+        return answer;
+    }
+
+    async function handleAiSubmit(event) {
+        event.preventDefault();
+        if (aiRequestPending) {
+            return;
+        }
+
+        const question = aiQuestionInput.value.trim();
+        if (!question) {
+            setAiStatus('请输入问题。', 'error');
+            aiQuestionInput.focus();
+            return;
+        }
+
+        const config = {
+            baseUrl: aiBaseUrlInput.value.trim(),
+            apiKey: aiApiKeyInput.value.trim(),
+            model: aiModelInput.value.trim(),
+        };
+
+        if (!config.baseUrl || !config.apiKey || !config.model) {
+            setAiStatus('请先填写并保存 Base URL、API Key 和 Model。', 'error');
+            return;
+        }
+
+        saveAiConfig();
+        appendAiMessage('user', question);
+        aiQuestionInput.value = '';
+        setAiSending(true);
+        setAiStatus('正在结合当前页与全站相关片段生成回答...', 'info');
+
+        const pendingMessage = appendAiMessage('assistant', '正在思考中，请稍候...', { pending: true });
+
+        try {
+            const answer = await requestAiAnswer(question, config);
+            pendingMessage.wrapper.classList.remove('is-pending');
+            pendingMessage.contentNode.textContent = answer;
+            setAiStatus('回答已生成。', 'success');
+        } catch (error) {
+            pendingMessage.wrapper.classList.remove('is-pending');
+            pendingMessage.contentNode.textContent =
+                error instanceof Error ? error.message : 'AI 请求失败，请稍后再试。';
+            setAiStatus('本次请求失败，请检查配置或接口连通性。', 'error');
+        } finally {
+            setAiSending(false);
+            aiQuestionInput.focus();
+        }
+    }
+
+    aiEntryButton.addEventListener('click', () => {
+        syncAiConfigInputs();
+        setAiPanelOpen(true);
+    });
+
+    aiChatClose.addEventListener('click', () => {
+        setAiPanelOpen(false);
+    });
+
+    aiChatOverlay.addEventListener('click', () => {
+        setAiPanelOpen(false);
+    });
+
+    aiSaveConfigButton.addEventListener('click', () => {
+        saveAiConfig();
+    });
+
+    [aiBaseUrlInput, aiApiKeyInput, aiModelInput].forEach(input => {
+        input.addEventListener('change', () => {
+            localStorage.setItem(AI_STORAGE_KEYS.baseUrl, aiBaseUrlInput.value.trim());
+            localStorage.setItem(AI_STORAGE_KEYS.apiKey, aiApiKeyInput.value.trim());
+            localStorage.setItem(AI_STORAGE_KEYS.model, aiModelInput.value.trim());
+            setAiStatus('配置已自动保存。', 'success');
+        });
+    });
+
+    aiChatForm.addEventListener('submit', handleAiSubmit);
+    aiQuestionInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            aiChatForm.requestSubmit();
+        }
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && aiChatPanel.classList.contains('open')) {
+            setAiPanelOpen(false);
+        }
+    });
+
+    syncAiConfigInputs();
+    setAiStatus('请先填写接口配置，然后开始提问。');
 }
 
 const tabs = document.querySelectorAll('.tab');
