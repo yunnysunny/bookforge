@@ -15,6 +15,7 @@
     "dev": "tsc --watch",
     "start": "tsx src/cli.ts",
     "start:html": "tsx src/cli.ts html --input ./docs --output ./examples/html",
+    "start:html:embedding": "tsx src/cli.ts html --input ./docs --output ./examples/html --embedding --embedding-model Xenova/multilingual-e5-small",
     "start:notion": "tsx src/cli.ts all --input ./zip/notion0.zip --output ./examples --mode notion",
     "start:notion:db": "tsx src/cli.ts html --input ./zip/notion-db0.zip --output ./examples --mode notion",
     "start:pdf": "tsx src/cli.ts pdf --input ./docs --output ./examples/pdf",
@@ -59,7 +60,8 @@
     "marked": "^17.0.0",
     "node-slogger": "^3.0.0",
     "puppeteer": "^24.30.0",
-    "unzipper": "^0.12.3"
+    "unzipper": "^0.12.3",
+    "yaml": "^2.8.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.6",
@@ -74,7 +76,12 @@
     "typescript": "^5.9.3",
     "vitest": "^4.0.12"
   },
-  "optionalDependencies": {
+  "peerDependencies": {
     "@xenova/transformers": "^2.17.2"
+  },
+  "peerDependenciesMeta": {
+    "@xenova/transformers": {
+      "optional": true
+    }
   }
 }

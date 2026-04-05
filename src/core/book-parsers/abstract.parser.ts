@@ -18,6 +18,7 @@ export abstract class AbstractParser implements IBookParser {
   private async getRealPath(path: string): Promise<string> {
     const stats = await stat(path);
     if (stats.isDirectory()) {
+      this._realPath = path;
       return path;
     }
     if (isZipFile(path)) {

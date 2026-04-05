@@ -59,7 +59,7 @@ export async function search(query, topK = 8) {
             headings: entry.headings || [],
             score: cosineSimilarity(queryVector, entry.vector),
         }))
-        .filter(entry => entry.score > 0.2)
+        .filter(entry => entry.score > 0.85)
         .sort((a, b) => b.score - a.score)
         .slice(0, topK);
 }

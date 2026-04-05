@@ -81,7 +81,6 @@ describe('HtmlGenerator', () => {
         ],
       };
 
-      // (existsSync as jest.Mock).mockReturnValue(false);
       vi.spyOn(GitbookParser.prototype, 'parse').mockResolvedValue(mockTree);
       await generator.generate();
       const _generator = generator as unknown as MockHtmlGenerator;
