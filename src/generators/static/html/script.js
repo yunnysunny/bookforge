@@ -1,6 +1,5 @@
 // BookForge 客户端脚本 (ESM)
 
-let embeddingSearch = null;
 let searchIndexPromise = null;
 
 function normalizeText(text) {
@@ -64,17 +63,6 @@ async function textSearch(query, maxResults = 8) {
         .sort((left, right) => right.score - left.score)
         .slice(0, maxResults);
 }
-
-(async () => {
-    try {
-        const mod = await import('./search-embedding.js');
-        if (await mod.init()) {
-            embeddingSearch = mod;
-        }
-    } catch {
-        // Embedding search not available
-    }
-})();
 
 // 平滑滚动到锚点
 document.querySelectorAll('a[href^="#"]').forEach(link => {
@@ -301,25 +289,7 @@ if (searchInput instanceof HTMLInputElement && searchResults) {
         `;
         searchResults.classList.add('visible');
 
-        let results = null;
-
-        if (embeddingSearch) {
-            try {
-                const semanticResults = await embeddingSearch.search(query, maxResults);
-                if (semanticResults?.length > 0) {
-                    results = semanticResults.map(r => ({
-                        ...r,
-                        headingMatches: flattenHeadingMatches(r.headings || [], query),
-                    }));
-                }
-            } catch {
-                // Fall through to text search
-            }
-        }
-
-        if (!results) {
-            results = await textSearch(query, maxResults);
-        }
+        const results = await textSearch(query, maxResults);
 
         renderSearchResults(results, query);
     }
