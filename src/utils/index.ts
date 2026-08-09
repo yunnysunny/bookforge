@@ -13,6 +13,9 @@ import {
 import { basename, extname, join } from 'path';
 import os from 'os';
 import unzipper from 'unzipper';
+
+export { loadConfigFile } from './config';
+
 const NOTION_DB_FILENAME_SUFFIX = '_all.csv';
 
 export async function mkdirAsync(path: string): Promise<string | undefined> {
@@ -39,6 +42,14 @@ export function isMarkdownFile(filePath: string): boolean {
 
 export function isSpecialCVSFile(filePath: string): boolean {
   return filePath.endsWith(NOTION_DB_FILENAME_SUFFIX);
+}
+
+/**
+ * 判断链接是否指向外部资源（带协议或协议相对），这类链接不需要改写或复制文件
+ * 例如 https://、mailto:、tel:、data:、//cdn.example.com
+ */
+export function isExternalHref(href: string): boolean {
+  return href.startsWith('//') || /^[a-z][a-z\d+.-]*:/i.test(href);
 }
 
 export async function getNotionDBFile(filePath: string): Promise<string | undefined> {

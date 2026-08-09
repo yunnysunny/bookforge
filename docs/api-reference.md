@@ -19,6 +19,7 @@ new HtmlGenerator(config: BookForgeConfig)
 - `config.title` - 网站标题（可选）
 - `config.author` - 作者（可选）
 - `config.skip` - 要跳过的文件/目录模式数组（可选）
+- `config.navLinks` - 顶部导航栏的自定义链接（可选），详见[配置说明](./configuration.md#navlinks---导航栏链接)
 
 ### 方法
 
@@ -31,6 +32,7 @@ new HtmlGenerator(config: BookForgeConfig)
 - 生成侧边栏导航
 - 生成目录（TOC）
 - 复制样式和脚本文件
+- 生成全站搜索索引 `search-index.json`
 
 ## PdfGenerator
 
@@ -110,8 +112,37 @@ interface BookForgeConfig {
   title?: string;
   author?: string;
   skip?: string[];
+  giscus?: GiscusConfig;
+  navLinks?: NavLink[];
 }
 ```
+
+各字段含义详见[配置说明](./configuration.md#配置项)。
+
+### NavLink
+
+```typescript
+interface NavLink {
+  text: string;
+  url: string;
+}
+```
+
+### GiscusConfig
+
+```typescript
+interface GiscusConfig {
+  repo: string;
+  repoId: string;
+  category: string;
+  categoryId: string;
+  mapping?: string;
+  theme?: string;
+  lang?: string;
+}
+```
+
+> 当前版本仅解析该配置，尚未渲染评论区。
 
 ### ParserMode
 
@@ -123,5 +154,36 @@ type ParserMode = "gitbook" | "notion";
 
 ```typescript
 type Env = "html" | "pdf";
+```
+
+## loadConfigFile
+
+加载 YAML 配置文件，返回 `Partial<BookForgeConfig>`。
+
+```typescript
+function loadConfigFile(configPath?: string): Promise<Partial<BookForgeConfig> | undefined>
+```
+
+**参数:**
+
+- `configPath` - 配置文件路径（可选）。省略时按 `bookforge.yml` → `bookforge.yaml` → `.bookforge.yml` → `.bookforge.yaml` 的顺序在当前工作目录查找
+
+**返回值:**
+
+- 传入 `configPath` 时：文件不存在或解析失败会抛出异常
+- 省略 `configPath` 时：一个候选文件都没找到则返回 `undefined`
+- 只包含文件中出现且类型合法的字段，非法字段会被静默丢弃
+
+```typescript
+import { HtmlGenerator, loadConfigFile } from 'bookforge';
+
+const fileConfig = await loadConfigFile();
+const generator = new HtmlGenerator({
+  input: './docs',
+  output: './dist/html',
+  format: 'html',
+  ...fileConfig,
+});
+await generator.generate();
 ```
 

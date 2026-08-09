@@ -39,27 +39,6 @@ export interface SearchIndexDocument {
   pages: SearchIndexEntry[];
 }
 
-export interface EmbeddingConfig {
-  enabled?: boolean;
-  provider?: 'onnx';
-  model: string;
-  output: string;
-  quantized?: boolean;
-  batchSize?: number;
-}
-
-export interface SearchEmbeddingEntry extends SearchIndexEntry {
-  id: string;
-  vector: number[];
-}
-
-export interface SearchEmbeddingDocument {
-  generatedAt: string;
-  model: string;
-  dimensions: number;
-  entries: SearchEmbeddingEntry[];
-}
-
 export interface GiscusConfig {
   repo: string;
   repoId: string;
@@ -85,7 +64,6 @@ export interface BookForgeConfig {
   title?: string;
   author?: string;
   skip?: string[];
-  embedding?: EmbeddingConfig;
   giscus?: GiscusConfig;
   navLinks?: NavLink[];
 }

@@ -1,4 +1,4 @@
-import { readFile as fsReadFile } from 'fs/promises';
+import { readFile as fsReadFile, stat } from 'fs/promises';
 import { resolve } from 'path';
 import { parse as parseYaml } from 'yaml';
 import type { BookForgeConfig, GiscusConfig, NavLink } from '../types';
@@ -20,11 +20,17 @@ export async function loadConfigFile(
   }
 
   for (const file of DEFAULT_CONFIG_FILES) {
+    const configFile = resolve(cwd, file);
     try {
-      return await readAndParseYaml(resolve(cwd, file));
+      const info = await stat(configFile);
+      if (!info.isFile()) {
+        continue;
+      }
     } catch {
-      // 文件不存在则继续尝试下一个
+      continue;
     }
+
+    return await readAndParseYaml(resolve(cwd, file));
   }
 
   return undefined;

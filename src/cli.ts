@@ -3,10 +3,11 @@
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { join } from 'node:path';
+import { resolve } from 'node:path';
 import { HtmlGenerator } from './generators/html.generator.js';
 import { PdfGenerator } from './generators/pdf.generator.js';
-import type { BookForgeConfig, EmbeddingConfig } from './types/index.js';
+import type { BookForgeConfig } from './types/index.js';
+import { loadConfigFile } from './utils/config.js';
 
 const program = new Command();
 const currentWorkingDir = process.cwd();
@@ -21,46 +22,48 @@ const addCommonOpts = (cmd: Command, outputDefault: string) =>
     .option('-o, --output <path>', '输出目录路径', outputDefault)
     .option('-m, --mode [mode]', '解析模式(gitbook, notion)', 'gitbook')
     .option('-s, --skip [skip]', '忽略的目录')
-    .option('-t, --title <title>', '文档标题', 'BookForge');
+    .option('-t, --title <title>', '文档标题', 'BookForge')
+    .option('-c, --config <path>', '配置文件路径(默认自动查找 bookforge.yml)');
 
-const addEmbeddingOpts = (cmd: Command) =>
-  cmd
-    .option('--embedding', '开启 embedding 生成')
-    .option('--embedding-model <model>', 'ONNX embedding 模型', 'Xenova/all-MiniLM-L6-v2')
-    .option('--embedding-output <file>', 'embedding 输出文件名', 'embedding-index.json')
-    .option('--embedding-batch-size <size>', 'embedding 批大小', '8');
-
-function createEmbeddingConfig(options: Record<string, unknown>): EmbeddingConfig | undefined {
-  if (!options.embedding) {
-    return undefined;
+/**
+ * 取值优先级：命令行显式传入 > 配置文件 > 选项默认值
+ */
+function pick<T>(cmd: Command, name: string, cliValue: T, fileValue: T | undefined): T {
+  if (cmd.getOptionValueSource(name) === 'cli' || fileValue === undefined) {
+    return cliValue;
   }
+  return fileValue;
+}
 
-  const batchSizeRaw = Number(options.embeddingBatchSize);
-  const batchSize = Number.isFinite(batchSizeRaw) && batchSizeRaw > 0 ? batchSizeRaw : 8;
+type ResolvedOptions = Omit<BookForgeConfig, 'format'>;
+
+/**
+ * 合并配置文件与命令行参数
+ */
+async function resolveOptions(
+  options: Record<string, string | undefined>,
+  cmd: Command,
+): Promise<ResolvedOptions> {
+  const fromFile = (await loadConfigFile(options.config)) || {};
 
   return {
-    enabled: true,
-    provider: 'onnx',
-    model: String(options.embeddingModel || 'Xenova/all-MiniLM-L6-v2'),
-    output: String(options.embeddingOutput || 'embedding-index.json'),
-    batchSize,
+    input: pick(cmd, 'input', options.input as string, fromFile.input),
+    output: pick(cmd, 'output', options.output as string, fromFile.output),
+    mode: pick(cmd, 'mode', options.mode as BookForgeConfig['mode'], fromFile.mode),
+    skip: pick(cmd, 'skip', options.skip?.split(','), fromFile.skip),
+    title: pick(cmd, 'title', options.title as string, fromFile.title),
+    author: fromFile.author,
+    giscus: fromFile.giscus,
+    navLinks: fromFile.navLinks,
   };
 }
 
-addEmbeddingOpts(addCommonOpts(program.command('html'), './dist/html'))
+addCommonOpts(program.command('html'), './dist/html')
   .description('生成 HTML 网站')
-  .action(async (options) => {
+  .action(async (options, cmd) => {
     try {
-      const config: BookForgeConfig = {
-        input: options.input,
-        mode: options.mode,
-        skip: options.skip?.split(','),
-        output: options.output,
-        format: 'html',
-        title: options.title,
-        embedding: createEmbeddingConfig(options),
-      };
-      await generateHtml(config);
+      const resolved = await resolveOptions(options, cmd);
+      await generateHtml({ ...resolved, format: 'html' });
     } catch (error) {
       console.error(chalk.red('❌ 生成失败:'), error);
       process.exit(1);
@@ -69,44 +72,31 @@ addEmbeddingOpts(addCommonOpts(program.command('html'), './dist/html'))
 
 addCommonOpts(program.command('pdf'), './dist/pdf')
   .description('生成 PDF 文件')
-  .action(async (options) => {
+  .action(async (options, cmd) => {
     try {
-      const config: BookForgeConfig = {
-        input: options.input,
-        mode: options.mode,
-        skip: options.skip?.split(','),
-        output: options.output,
-        format: 'pdf',
-        title: options.title,
-      };
-      await generatePdf(config);
+      const resolved = await resolveOptions(options, cmd);
+      await generatePdf({ ...resolved, format: 'pdf' });
     } catch (error) {
       console.error(chalk.red('❌ 生成失败:'), error);
       process.exit(1);
     }
   });
 
-addEmbeddingOpts(addCommonOpts(program.command('all'), './dist'))
+addCommonOpts(program.command('all'), './dist')
   .description('同时生成 HTML 网站和 PDF 文件')
-  .action(async (options) => {
+  .action(async (options, cmd) => {
     try {
+      const resolved = await resolveOptions(options, cmd);
       const htmlConfig: BookForgeConfig = {
-        input: options.input,
-        mode: options.mode,
-        skip: options.skip?.split(','),
-        output: `${options.output}/html`,
+        ...resolved,
+        output: `${resolved.output}/html`,
         format: 'html',
-        title: options.title,
-        embedding: createEmbeddingConfig(options),
       };
 
       const pdfConfig: BookForgeConfig = {
-        input: options.input,
-        mode: options.mode,
-        skip: options.skip?.split(','),
-        output: `${options.output}/pdf`,
+        ...resolved,
+        output: `${resolved.output}/pdf`,
         format: 'pdf',
-        title: options.title,
       };
 
       await Promise.all([generateHtml(htmlConfig), generatePdf(pdfConfig)]);
@@ -118,8 +108,8 @@ addEmbeddingOpts(addCommonOpts(program.command('all'), './dist'))
 function decorateConfig(config: BookForgeConfig): BookForgeConfig {
   return {
     ...config,
-    input: join(currentWorkingDir, config.input),
-    output: join(currentWorkingDir, config.output),
+    input: resolve(currentWorkingDir, config.input),
+    output: resolve(currentWorkingDir, config.output),
   };
 }
 /**
