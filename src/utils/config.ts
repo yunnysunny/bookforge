@@ -3,7 +3,12 @@ import { resolve } from 'path';
 import { parse as parseYaml } from 'yaml';
 import type { BookForgeConfig, GiscusConfig, NavLink } from '../types';
 
-const DEFAULT_CONFIG_FILES = ['bookforge.yml', 'bookforge.yaml', '.bookforge.yml', '.bookforge.yaml'];
+const DEFAULT_CONFIG_FILES = [
+  'bookforge.yml',
+  'bookforge.yaml',
+  '.bookforge.yml',
+  '.bookforge.yaml',
+];
 
 /**
  * 从 YAML 文件加载配置，返回 Partial<BookForgeConfig>，
@@ -70,8 +75,12 @@ function validateConfig(raw: Record<string, unknown>): Partial<BookForgeConfig> 
 
   if (raw.giscus != null && typeof raw.giscus === 'object') {
     const g = raw.giscus as Record<string, unknown>;
-    if (typeof g.repo === 'string' && typeof g.repoId === 'string'
-      && typeof g.category === 'string' && typeof g.categoryId === 'string') {
+    if (
+      typeof g.repo === 'string'
+      && typeof g.repoId === 'string'
+      && typeof g.category === 'string'
+      && typeof g.categoryId === 'string'
+    ) {
       const giscus: GiscusConfig = {
         repo: g.repo,
         repoId: g.repoId,
@@ -88,10 +97,16 @@ function validateConfig(raw: Record<string, unknown>): Partial<BookForgeConfig> 
   if (Array.isArray(raw.navLinks)) {
     const links: NavLink[] = [];
     for (const item of raw.navLinks) {
-      if (item != null && typeof item === 'object'
+      if (
+        item != null
+        && typeof item === 'object'
         && typeof (item as Record<string, unknown>).text === 'string'
-        && typeof (item as Record<string, unknown>).url === 'string') {
-        links.push({ text: (item as Record<string, unknown>).text as string, url: (item as Record<string, unknown>).url as string });
+        && typeof (item as Record<string, unknown>).url === 'string'
+      ) {
+        links.push({
+          text: (item as Record<string, unknown>).text as string,
+          url: (item as Record<string, unknown>).url as string,
+        });
       }
     }
     if (links.length > 0) {
