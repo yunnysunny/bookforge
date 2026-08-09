@@ -46,6 +46,27 @@ bookforge pdf --input ./docs --output ./dist/pdf
 bookforge all --input ./docs --output ./dist
 ```
 
+## 配置文件
+
+常用参数可以写进项目根目录的 `bookforge.yml`，运行时自动读取（也可用 `-c` 指定路径）：
+
+```yaml
+input: ./docs
+output: ./dist/html
+title: 我的技术手册
+skip:
+  - drafts
+navLinks:
+  - text: GitHub
+    url: https://github.com/yunnysunny/bookforge
+```
+
+```bash
+bookforge html
+```
+
+命令行显式传入的参数优先于配置文件。完整字段说明见 [docs/configuration.md](./docs/configuration.md)。
+
 ## 开发
 
 ```bash

@@ -4,5 +4,6 @@
 
 * [介绍](./introduction.md)
 * [快速开始](./getting-started.md)
+* [配置说明](./configuration.md)
 * [API 参考](./api-reference.md)
 * [示例](./examples.md)

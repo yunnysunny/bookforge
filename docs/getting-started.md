@@ -34,6 +34,25 @@ pnpm start pdf --input ./docs --output ./dist/pdf --title "我的文档"
 pnpm start all --input ./docs --output ./dist --title "我的文档"
 ```
 
+## 使用配置文件
+
+把常用参数写进项目根目录的 `bookforge.yml`，之后就不用每次都敲一长串参数：
+
+```yaml
+input: ./docs
+output: ./dist/html
+title: 我的文档
+navLinks:
+  - text: GitHub
+    url: https://github.com/yunnysunny/bookforge
+```
+
+```bash
+pnpm start html
+```
+
+完整字段和优先级规则见[配置说明](./configuration.md)。
+
 ## 项目结构
 
 确保你的文档目录结构如下：

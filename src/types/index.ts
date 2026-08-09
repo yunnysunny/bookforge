@@ -39,25 +39,19 @@ export interface SearchIndexDocument {
   pages: SearchIndexEntry[];
 }
 
-export interface EmbeddingConfig {
-  enabled?: boolean;
-  provider?: 'onnx';
-  model: string;
-  output: string;
-  quantized?: boolean;
-  batchSize?: number;
+export interface GiscusConfig {
+  repo: string;
+  repoId: string;
+  category: string;
+  categoryId: string;
+  mapping?: string;
+  theme?: string;
+  lang?: string;
 }
 
-export interface SearchEmbeddingEntry extends SearchIndexEntry {
-  id: string;
-  vector: number[];
-}
-
-export interface SearchEmbeddingDocument {
-  generatedAt: string;
-  model: string;
-  dimensions: number;
-  entries: SearchEmbeddingEntry[];
+export interface NavLink {
+  text: string;
+  url: string;
 }
 
 export type ParserMode = 'gitbook' | 'notion';
@@ -70,7 +64,8 @@ export interface BookForgeConfig {
   title?: string;
   author?: string;
   skip?: string[];
-  embedding?: EmbeddingConfig;
+  giscus?: GiscusConfig;
+  navLinks?: NavLink[];
 }
 
 export interface ParserOptions {

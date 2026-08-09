@@ -6,18 +6,17 @@ import { join } from 'node:path';
 import type {
   BookForgeConfig,
   Heading,
-  SearchEmbeddingDocument,
+  NavLink,
   SearchIndexDocument,
   SearchIndexEntry,
   SearchIndexHeading,
   TreeNode,
 } from '../types/index.js';
-import { generateEmbeddingIndex } from '../embeddings/onnx-embedding.js';
 import { AbstractGenerator } from './abstract.generator.js';
 
 export class HtmlGenerator extends AbstractGenerator {
   private sidebar: string = '';
-  private readonly config: BookForgeConfig;
+  private readonly navLinks: NavLink[];
   protected async doGenerate(treeRoot: TreeNode): Promise<void> {
     this.sidebar = await this.generateSidebar(treeRoot);
     // 生成主页面
@@ -35,12 +34,11 @@ export class HtmlGenerator extends AbstractGenerator {
     // 生成全局搜索索引
     const pages = this.collectSearchIndexEntries(treeRoot);
     await this.generateSearchIndex(pages);
-    await this.generateEmbeddings(pages);
   }
   constructor(config: BookForgeConfig) {
     super(config);
     this.name = 'html';
-    this.config = config;
+    this.navLinks = config.navLinks || [];
   }
 
   /**
@@ -90,6 +88,7 @@ export class HtmlGenerator extends AbstractGenerator {
       sidebar: this.sidebar,
       toc,
       htmlContent,
+      navLinks: this.navLinks,
     });
 
     return html;
@@ -193,20 +192,6 @@ export class HtmlGenerator extends AbstractGenerator {
     await writeFile(
       join(this.outputDir, 'search-index.json'),
       JSON.stringify(searchIndex, null, 2),
-      'utf-8',
-    );
-  }
-
-  private async generateEmbeddings(pages: SearchIndexEntry[]): Promise<void> {
-    if (!this.config.embedding?.enabled) {
-      return;
-    }
-
-    const embeddingConfig = this.config.embedding;
-    const document: SearchEmbeddingDocument = await generateEmbeddingIndex(pages, embeddingConfig);
-    await writeFile(
-      join(this.outputDir, embeddingConfig.output || 'search-embeddings.json'),
-      JSON.stringify(document, null, 2),
       'utf-8',
     );
   }
