@@ -4,7 +4,7 @@ import { copyFile } from 'node:fs/promises';
 import { marked, type Token, type Tokens, Marked } from 'marked';
 import { basename, dirname, extname, join } from 'node:path';
 import type { Env, Heading, MarkdownFile } from '../types/index.js';
-import { generateIdFromText, isMarkdownFile, mkdirAsync, readFile } from '../utils';
+import { generateIdFromText, isExternalHref, isMarkdownFile, mkdirAsync, readFile } from '../utils';
 import { gitbookExtension } from './marked-plugins/gitbook.plugin.js';
 import { katexExtension } from './marked-plugins/katex.plugin.js';
 import { gitbookTabExtension } from './marked-plugins/gitbook-tab.plugin.js';
@@ -220,18 +220,26 @@ export class MarkdownParser {
           if (!href) {
             return;
           }
-          if (href.startsWith('http') || href.startsWith('https')) {
+          if (isExternalHref(href)) {
             return;
           }
-          if (!isMarkdownFile(href)) {
-            await this.copyResource(href, options);
+          // 分离锚点/查询串：./guide.md#安装 -> ./guide.md + #安装
+          const suffixIndex = href.search(/[#?]/);
+          const filePath = suffixIndex === -1 ? href : href.slice(0, suffixIndex);
+          const suffix = suffixIndex === -1 ? '' : href.slice(suffixIndex);
+          // 纯锚点链接（如 #安装）指向当前页面，无需改写
+          if (!filePath) {
             return;
           }
-          const path = dirname(href);
-          const filename = basename(href, extname(href));
+          if (!isMarkdownFile(filePath)) {
+            await this.copyResource(filePath, options);
+            return;
+          }
+          const path = dirname(filePath);
+          const filename = basename(filePath, extname(filePath));
           // 确保路径格式正确：如果 path 是 '.'，则使用相对路径
           const link = path === '.' ? `./${filename}.html` : `${path}/${filename}.html`;
-          token.href = link;
+          token.href = `${link}${suffix}`;
         } else if (token.type === 'code') {
           // 处理 mermaid 代码块
           const codeToken = token as Tokens.Code;

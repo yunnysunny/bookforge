@@ -161,6 +161,67 @@ console.log('Hello World');
       });
       expect(html).toContain('纯文本内容');
     });
+
+    it('应该把 markdown 链接改写为 html 链接', async () => {
+      const html = await parser.toHtml('[配置说明](./configuration.md)', {
+        contentPath: 'test.md',
+        destDir: 'test.html',
+      });
+      expect(html).toContain('href="./configuration.html"');
+    });
+
+    it('应该保留 markdown 链接上的锚点', async () => {
+      const html = await parser.toHtml('[配置项](./configuration.md#config-options)', {
+        contentPath: 'test.md',
+        destDir: 'test.html',
+      });
+      expect(html).toContain('href="./configuration.html#config-options"');
+    });
+
+    it('中文锚点会被 marked 百分号编码后保留', async () => {
+      const html = await parser.toHtml('[配置项](./configuration.md#配置项)', {
+        contentPath: 'test.md',
+        destDir: 'test.html',
+      });
+      expect(html).toContain(`href="./configuration.html#${encodeURIComponent('配置项')}"`);
+    });
+
+    it('应该保留 markdown 链接上的查询串', async () => {
+      const html = await parser.toHtml('[子目录](./guide/intro.md?v=2)', {
+        contentPath: 'test.md',
+        destDir: 'test.html',
+      });
+      expect(html).toContain('href="./guide/intro.html?v=2"');
+    });
+
+    it('纯锚点链接应该原样保留', async () => {
+      const html = await parser.toHtml('[本页小节](#install)', {
+        contentPath: 'test.md',
+        destDir: 'test.html',
+      });
+      expect(html).toContain('href="#install"');
+    });
+
+    it('带协议的链接应该原样保留且不尝试复制文件', async () => {
+      const copySpy = vi.spyOn(utils, 'mkdirAsync');
+      const markdown = [
+        '[邮件](mailto:yunnysunny@gmail.com)',
+        '[电话](tel:+8613800138000)',
+        '[官网](https://example.com/a.md)',
+        '[CDN](//cdn.example.com/lib.js)',
+      ].join('\n\n');
+
+      const html = await parser.toHtml(markdown, {
+        contentPath: 'test.md',
+        destDir: 'test.html',
+      });
+
+      expect(html).toContain('href="mailto:yunnysunny@gmail.com"');
+      expect(html).toContain('href="tel:+8613800138000"');
+      expect(html).toContain('href="https://example.com/a.md"');
+      expect(html).toContain('href="//cdn.example.com/lib.js"');
+      expect(copySpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('标题提取', () => {
