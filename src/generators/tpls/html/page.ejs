@@ -28,6 +28,10 @@
             </button>
             <nav class="navbar-nav">
                 <a href="index.html" class="nav-link active">首页</a>
+                <% (navLinks || []).forEach(function (link) { %>
+                    <% const isExternal = /^(https?:)?\/\//i.test(link.url); %>
+                    <a href="<%= link.url %>" class="nav-link"<% if (isExternal) { %> target="_blank" rel="noopener noreferrer"<% } %>><%= link.text %></a>
+                <% }); %>
             </nav>
         </div>
     </header>
