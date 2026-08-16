@@ -198,7 +198,7 @@ body {
     color: white;
     text-decoration: none;
     padding: 0 0 4px 0;
-    border-bottom: 2px solid #3498db;
+    border-bottom: 2px solid transparent;
     transition: color 0.3s ease, border-color 0.3s ease;
     font-size: 0.9rem;
 }
@@ -1159,6 +1159,11 @@ body.ai-chat-open {
 .back-to-top-icon {
     display: inline-block;
     line-height: 1;
+}
+
+.giscus-container {
+    padding-top: 30px;
+    padding-left: 15px;
 }
 
 /* 响应式设计 - 小屏幕：调整回到顶部按钮位置 */

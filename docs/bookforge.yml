@@ -1,0 +1,12 @@
+navLinks:
+  - text: GitHub
+    url: https://github.com/yunnysunny/bookforge
+
+giscus:
+  repo: "yunnysunny/bookforge"
+  repoId: "R_kgDOQHuwBw"
+  category: "Q&A"
+  categoryId: "DIC_kwDOQHuwB84DDe4L"
+  mapping: "pathname"
+  theme: "preferred_color_scheme"
+  lang: "zh-CN"

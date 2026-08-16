@@ -17,6 +17,8 @@ import { AbstractGenerator } from './abstract.generator.js';
 export class HtmlGenerator extends AbstractGenerator {
   private sidebar: string = '';
   private readonly navLinks: NavLink[];
+  private readonly giscus: import('../types/index.js').GiscusConfig | undefined;
+  private readonly author: string | undefined;
   protected async doGenerate(treeRoot: TreeNode): Promise<void> {
     this.sidebar = await this.generateSidebar(treeRoot);
     // 生成主页面
@@ -39,6 +41,8 @@ export class HtmlGenerator extends AbstractGenerator {
     super(config);
     this.name = 'html';
     this.navLinks = config.navLinks || [];
+    this.giscus = config.giscus;
+    this.author = config.author;
   }
 
   /**
@@ -89,6 +93,7 @@ export class HtmlGenerator extends AbstractGenerator {
       toc,
       htmlContent,
       navLinks: this.navLinks,
+      giscus: this.giscus,
     });
 
     return html;

@@ -53,7 +53,7 @@ bookforge html --title "临时标题"  # 标题为「临时标题」（命令行
 | `format` | string | 随命令而定 | — | `html` 或 `pdf`，由子命令决定，配置文件中设置无效 |
 | `mode` | string | `gitbook` | `-m, --mode` | 解析模式，`gitbook` 或 `notion` |
 | `title` | string | `BookForge` | `-t, --title` | 文档标题，显示在导航栏和 PDF 封面 |
-| `author` | string | — | — | 作者。仅配置文件支持，且当前版本尚未在输出中使用 |
+| `author` | string | — | — | 作者。仅配置文件支持，HTML 输出会渲染为 `<meta name="author">` |
 | `skip` | string[] | — | `-s, --skip` | 忽略的目录。命令行用逗号分隔，配置文件用数组 |
 
 `output` 的默认值取决于子命令：`html` 为 `./dist/html`，`pdf` 为 `./dist/pdf`，`all` 为 `./dist`（并在其下再分出 `html/` 和 `pdf/` 两个子目录）。
@@ -86,18 +86,34 @@ navLinks:
 - `text` 和 `url` 都会做 HTML 转义
 - 缺少 `text` 或 `url` 的条目会被静默忽略；整个数组都无效时相当于没有配置
 
-### giscus - 评论区（尚未生效）
+### giscus - 评论区
 
-配置文件已支持解析 `giscus` 字段，但**当前版本还没有把评论区渲染到页面上**，配置了也不会有任何效果。字段结构如下，保留给后续版本：
+在每个页面文章内容下方嵌入 [giscus](https://giscus.app) 评论区，基于 GitHub Discussions 实现。**仅 HTML 输出生效。**
+
+使用前需要：
+
+1. 在 GitHub 仓库设置里开启 **Discussions**
+2. 前往 [github.com/apps/giscus](https://github.com/apps/giscus) 安装 giscus App 并授权目标仓库
+3. 前往 [giscus.app](https://giscus.app) 填入仓库信息，获取 `repoId` 和 `categoryId`
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `repo` | string | 是 | GitHub 仓库，格式 `owner/repo` |
+| `repoId` | string | 是 | 仓库的 Node ID，从 giscus.app 获取 |
+| `category` | string | 是 | Discussion 分类名称 |
+| `categoryId` | string | 是 | 分类的 Node ID，从 giscus.app 获取 |
+| `mapping` | string | 否 | 页面与 Discussion 的关联方式，默认 `pathname` |
+| `theme` | string | 否 | 主题，默认 `preferred_color_scheme` |
+| `lang` | string | 否 | 语言，默认 `zh-CN` |
 
 ```yaml
 giscus:
-  repo: yunnysunny/bookforge          # 必填
-  repoId: R_xxxxxxxx                  # 必填
-  category: Announcements             # 必填
-  categoryId: DIC_xxxxxxxx            # 必填
-  mapping: pathname                   # 可选
-  theme: light                        # 可选
+  repo: yunnysunny/bookforge
+  repoId: R_kgDOQHuwBw
+  category: Announcements
+  categoryId: DIC_xxxxxxxx
+  mapping: pathname                   # 可选：url | title | og:title | specific | number | pathname
+  theme: preferred_color_scheme       # 可选：light | dark | preferred_color_scheme 等
   lang: zh-CN                         # 可选
 ```
 

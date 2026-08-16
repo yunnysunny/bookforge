@@ -20,6 +20,7 @@ new HtmlGenerator(config: BookForgeConfig)
 - `config.author` - 作者（可选）
 - `config.skip` - 要跳过的文件/目录模式数组（可选）
 - `config.navLinks` - 顶部导航栏的自定义链接（可选），详见[配置说明](./configuration.md#navlinks---导航栏链接)
+- `config.giscus` - giscus 评论区配置（可选），详见[配置说明](./configuration.md#giscus---评论区)
 
 ### 方法
 
