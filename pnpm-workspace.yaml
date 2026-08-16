@@ -1,3 +1,8 @@
+allowBuilds:
+  core-js: true
+  esbuild: true
+  puppeteer: true
+
 ignoredBuiltDependencies:
   - protobufjs
 
