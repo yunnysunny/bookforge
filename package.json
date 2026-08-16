@@ -14,7 +14,7 @@
     "postbuild": "cpx \"src/generators/{tpls,static}/**/*\" dist/generators",
     "dev": "tsc --watch",
     "start": "tsx src/cli.ts",
-    "start:html": "tsx src/cli.ts html --input ./docs --output ./examples/html",
+    "start:html": "tsx src/cli.ts html --config ./docs/bookforge.yml --input ./docs --output ./examples/html",
     "start:notion": "tsx src/cli.ts all --input ./zip/notion0.zip --output ./examples --mode notion",
     "start:notion:db": "tsx src/cli.ts html --input ./zip/notion-db0.zip --output ./examples --mode notion",
     "start:pdf": "tsx src/cli.ts pdf --input ./docs --output ./examples/pdf",
