@@ -210,6 +210,21 @@ navLinks:
     expect(config?.navLinks).toBeUndefined();
   });
 
+  test('应该解析合法的 theme 配置', async () => {
+    const configPath = join(TEMP_DIR, 'theme.yml');
+    await writeFile(configPath, 'title: Test\ntheme: night\n');
+
+    const config = await loadConfigFile(configPath);
+    expect(config).toEqual({ title: 'Test', theme: 'night' });
+  });
+
+  test('非法的 theme 配置应该被忽略', async () => {
+    const configPath = join(TEMP_DIR, 'theme-invalid.yml');
+    await writeFile(configPath, 'title: Test\ntheme: neon\n');
+
+    expect(await loadConfigFile(configPath)).toEqual({ title: 'Test' });
+  });
+
   test('应该自动发现默认配置文件', async () => {
     const configPath = join(TEMP_DIR, 'bookforge.yaml');
     await writeFile(configPath, 'title: Auto Discovered\n');

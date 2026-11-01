@@ -1,11 +1,12 @@
 // HTML 生成器
 
-import { copyFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 // import { fileURLToPath } from 'url';
 import type {
   BookForgeConfig,
   Heading,
+  HtmlTheme,
   NavLink,
   SearchIndexDocument,
   SearchIndexEntry,
@@ -19,6 +20,7 @@ export class HtmlGenerator extends AbstractGenerator {
   private readonly navLinks: NavLink[];
   private readonly giscus: import('../types/index.js').GiscusConfig | undefined;
   private readonly author: string | undefined;
+  private readonly theme: HtmlTheme;
   protected async doGenerate(treeRoot: TreeNode): Promise<void> {
     this.sidebar = await this.generateSidebar(treeRoot);
     // 生成主页面
@@ -43,6 +45,7 @@ export class HtmlGenerator extends AbstractGenerator {
     this.navLinks = config.navLinks || [];
     this.giscus = config.giscus;
     this.author = config.author;
+    this.theme = config.theme || 'default';
   }
 
   /**
@@ -94,6 +97,7 @@ export class HtmlGenerator extends AbstractGenerator {
       htmlContent,
       navLinks: this.navLinks,
       giscus: this.giscus,
+      theme: this.theme,
     });
 
     return html;
@@ -180,6 +184,10 @@ export class HtmlGenerator extends AbstractGenerator {
    */
   private async copyStyles(): Promise<void> {
     await this.copyFile('styles.css', 'styles.css');
+    if (this.theme !== 'default') {
+      await mkdir(join(this.outputDir, 'themes'), { recursive: true });
+      await this.copyFile(`themes/${this.theme}.css`, `themes/${this.theme}.css`);
+    }
   }
 
   /**

@@ -549,6 +549,11 @@ body.ai-chat-open {
     padding: 20px 0;
 }
 
+/* 窄屏时代替顶栏导航链接，宽屏下隐藏 */
+.sidebar-mobile-links {
+    display: none;
+}
+
 .sidebar-item {
     margin-bottom: 5px;
 }
@@ -567,6 +572,12 @@ body.ai-chat-open {
 
 .sidebar-children {
     margin-left: 20px;
+}
+
+.sidebar-link.active {
+    background-color: #34495e;
+    color: #3498db;
+    font-weight: 600;
 }
 
 .level-1 .sidebar-link { padding-left: 20px; }
@@ -714,6 +725,11 @@ body.ai-chat-open {
 
 .toc-link:hover {
     color: #2c3e50;
+}
+
+.toc-link.active {
+    color: #2c3e50;
+    font-weight: 600;
 }
 
 .level-1 .toc-link { padding-left: 0; }
@@ -1024,20 +1040,48 @@ body.ai-chat-open {
         padding: 0 10px;
     }
 
-    .navbar-right {
-        gap: 10px;
+    .navbar-left {
+        flex: 1;
+        min-width: 0;
+        gap: 8px;
     }
-    
+
+    .navbar-right {
+        flex-shrink: 0;
+        gap: 8px;
+    }
+
     .navbar-title {
         font-size: 1rem;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
-    
+
+    /* 顶栏放不下导航链接，移到侧边栏顶部 */
+    .navbar-nav {
+        display: none;
+    }
+
+    .sidebar-mobile-links {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+    }
+
     .search-input {
+        width: 120px;
+    }
+
+    .search-input:focus {
         width: 150px;
     }
-    
-    .search-input:focus {
-        width: 180px;
+
+    .sidebar-toggle {
+        flex-shrink: 0;
     }
 
     .search-results {

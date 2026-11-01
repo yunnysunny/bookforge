@@ -55,12 +55,37 @@ bookforge html --title "临时标题"  # 标题为「临时标题」（命令行
 | `title` | string | `BookForge` | `-t, --title` | 文档标题，显示在导航栏和 PDF 封面 |
 | `author` | string | — | — | 作者。仅配置文件支持，HTML 输出会渲染为 `<meta name="author">` |
 | `skip` | string[] | — | `-s, --skip` | 忽略的目录。命令行用逗号分隔，配置文件用数组 |
+| `theme` | string | `default` | `--theme` | HTML 站点主题，见下方「theme - 站点主题」。仅 HTML 输出生效 |
 
 `output` 的默认值取决于子命令：`html` 为 `./dist/html`，`pdf` 为 `./dist/pdf`，`all` 为 `./dist`（并在其下再分出 `html/` 和 `pdf/` 两个子目录）。
 
 `input` 和 `output` 中的相对路径都相对于当前工作目录解析，也可以直接写绝对路径。
 
 `skip` 只作用于**目录**，且是**子串匹配**而非 glob：写 `draft` 会跳过 `draft`、`drafts`、`my-draft` 等所有目录名包含 `draft` 的目录，但不会跳过 `draft.md` 这类文件。
+
+### theme - 站点主题
+
+切换 HTML 站点的外观。**仅 HTML 输出生效**，PDF 不受影响。
+
+| 取值 | 名称 | 风格 |
+|------|------|------|
+| `default` | 经典 | 原有样式：深蓝顶栏和侧栏，正文是白色卡片 |
+| `paper` | 纸页 | 浅色、阅读优先。白色顶栏、浅灰侧栏，衬线标题，青绿色强调色，正文不再装在卡片里 |
+| `night` | 夜读 | 深色开发者风格，琥珀色强调色，代码高亮适配深色；AI 问答从右侧整高抽屉滑出，不遮暗正文 |
+| `workspace` | 工作台 | 暖灰底色，顶栏与侧栏融为一体，正文和本页目录放在同一张白色卡片里，代码块为深色；AI 问答是右侧浮动卡片 |
+
+```yaml
+theme: paper
+```
+
+```bash
+# 也可以在命令行临时指定，优先级高于配置文件
+bookforge html --theme night
+```
+
+选用非 `default` 主题时，输出目录会多出 `themes/<主题名>.css`，在 `styles.css` 之后加载，只覆盖外观，页面结构和交互（侧栏、目录、搜索、AI 问答）完全一致。
+
+所有主题都会在侧边栏高亮当前页面，并让右侧目录随滚动高亮当前小节。
 
 ### navLinks - 导航栏链接
 
@@ -179,7 +204,7 @@ const generator = new HtmlGenerator({
 
 配置文件采取「宽松校验」策略：**类型不合法的字段会被丢弃，而不是报错**。
 
-- `format` 只接受 `html` / `pdf`，`mode` 只接受 `gitbook` / `notion`，其他值按未设置处理
+- `format` 只接受 `html` / `pdf`，`mode` 只接受 `gitbook` / `notion`，`theme` 只接受 `default` / `paper` / `night` / `workspace`，其他值按未设置处理
 - `skip` 数组中的非字符串项会被过滤掉
 - 文件本身不存在（自动查找时）或解析结果不是对象，都按未配置处理
 
