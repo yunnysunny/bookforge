@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<% const currentTheme = (typeof theme !== 'undefined' && theme) ? theme : 'default'; %>
+<html lang="zh-CN" data-theme="<%= currentTheme %>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,9 @@
     <meta name="author" content="<%= author %>">
     <% } %>
     <link rel="stylesheet" href="styles.css">
+    <% if (currentTheme !== 'default') { %>
+    <link rel="stylesheet" href="themes/<%= currentTheme %>.css">
+    <% } %>
     <link href="https://s4.zstatic.net/ajax/libs/prism/1.30.0/themes/prism.min.css" rel="stylesheet">
     <link href="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/katex.min.css" rel="stylesheet">
 </head>
@@ -44,6 +48,14 @@
             <!-- <div class="sidebar-header"> -->
                 <!-- <h1><%= bookTitle %></h1> -->
             <!-- </div> -->
+            <!-- 窄屏下顶栏放不下导航链接，改在侧边栏顶部显示 -->
+            <nav class="sidebar-mobile-links" aria-label="站点链接">
+                <a href="index.html" class="sidebar-link">首页</a>
+                <% (navLinks || []).forEach(function (link) { %>
+                    <% const isExternalMobile = /^(https?:)?\/\//i.test(link.url); %>
+                    <a href="<%= link.url %>" class="sidebar-link"<% if (isExternalMobile) { %> target="_blank" rel="noopener noreferrer"<% } %>><%= link.text %></a>
+                <% }); %>
+            </nav>
             <nav class="sidebar-nav">
                 <%- sidebar %>
             </nav>

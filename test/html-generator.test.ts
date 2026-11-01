@@ -136,6 +136,58 @@ describe('HtmlGenerator', () => {
       expect(about.attr('target')).toBeUndefined();
     });
 
+    it('默认主题不引入额外样式文件', async () => {
+      const mockTree: TreeNode = {
+        title: 'Root',
+        children: [
+          {
+            title: '介绍',
+            path: './introduction.md',
+            content: '# 介绍',
+            headings: [],
+            children: [],
+          },
+        ],
+      };
+      vi.spyOn(GitbookParser.prototype, 'parse').mockResolvedValue(mockTree);
+      await generator.generate();
+
+      const html = await readFile(path.join(mockOutputDir, 'index.html'), 'utf-8');
+      const $ = cheerio.load(html);
+      expect($('html').attr('data-theme')).toBe('default');
+      expect($('link[href^="themes/"]')).toHaveLength(0);
+    });
+
+    it.each([
+      'paper',
+      'night',
+      'workspace',
+    ] as const)('应该应用 %s 主题并复制其样式文件', async (theme) => {
+      const themedGenerator = new HtmlGenerator({ ...defaultOptions, theme });
+      const mockTree: TreeNode = {
+        title: 'Root',
+        children: [
+          {
+            title: '介绍',
+            path: './introduction.md',
+            content: '# 介绍',
+            headings: [],
+            children: [],
+          },
+        ],
+      };
+      vi.spyOn(GitbookParser.prototype, 'parse').mockResolvedValue(mockTree);
+      await themedGenerator.generate();
+
+      const html = await readFile(path.join(mockOutputDir, 'index.html'), 'utf-8');
+      const $ = cheerio.load(html);
+      expect($('html').attr('data-theme')).toBe(theme);
+      expect($(`link[href="themes/${theme}.css"]`)).toHaveLength(1);
+
+      const css = await readFile(path.join(mockOutputDir, 'themes', `${theme}.css`), 'utf-8');
+      expect(css).toContain(`[data-theme="${theme}"]`);
+    });
+
     it.skip('应该处理空目录树', async () => {
       const mockTree: TreeNode = {
         title: 'Root',

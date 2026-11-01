@@ -1,7 +1,8 @@
 import { readFile as fsReadFile, stat } from 'fs/promises';
 import { resolve } from 'path';
 import { parse as parseYaml } from 'yaml';
-import type { BookForgeConfig, GiscusConfig, NavLink } from '../types';
+import { HTML_THEMES } from '../types';
+import type { BookForgeConfig, GiscusConfig, HtmlTheme, NavLink } from '../types';
 
 const DEFAULT_CONFIG_FILES = [
   'bookforge.yml',
@@ -53,6 +54,10 @@ async function readAndParseYaml(absPath: string): Promise<Partial<BookForgeConfi
 const VALID_FORMATS = new Set(['html', 'pdf']);
 const VALID_MODES = new Set(['gitbook', 'notion']);
 
+export function isHtmlTheme(value: unknown): value is HtmlTheme {
+  return typeof value === 'string' && (HTML_THEMES as readonly string[]).includes(value);
+}
+
 function validateConfig(raw: Record<string, unknown>): Partial<BookForgeConfig> {
   const config: Partial<BookForgeConfig> = {};
 
@@ -67,6 +72,10 @@ function validateConfig(raw: Record<string, unknown>): Partial<BookForgeConfig> 
 
   if (typeof raw.mode === 'string' && VALID_MODES.has(raw.mode)) {
     config.mode = raw.mode as BookForgeConfig['mode'];
+  }
+
+  if (isHtmlTheme(raw.theme)) {
+    config.theme = raw.theme;
   }
 
   if (Array.isArray(raw.skip)) {

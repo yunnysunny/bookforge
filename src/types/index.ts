@@ -55,6 +55,8 @@ export interface NavLink {
 }
 
 export type ParserMode = 'gitbook' | 'notion';
+export const HTML_THEMES = ['default', 'paper', 'night', 'workspace'] as const;
+export type HtmlTheme = (typeof HTML_THEMES)[number];
 export type Env = 'html' | 'pdf';
 export interface BookForgeConfig {
   input: string;
@@ -66,6 +68,8 @@ export interface BookForgeConfig {
   skip?: string[];
   giscus?: GiscusConfig;
   navLinks?: NavLink[];
+  /** HTML 站点主题，默认 default */
+  theme?: HtmlTheme;
 }
 
 export interface ParserOptions {

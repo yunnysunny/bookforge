@@ -1,0 +1,561 @@
+/*
+ * 主题 B · 夜读（night）
+ * 深色开发者风格，琥珀色强调；AI 问答停靠在右侧，作为整高抽屉打开。
+ * 在 styles.css 之后加载，只覆盖外观，不改变交互逻辑。
+ */
+[data-theme="night"] {
+    color-scheme: dark;
+    --bf-bg: #0d1117;
+    --bf-panel: #11161d;
+    --bf-surface: #151a21;
+    --bf-raised: #1a212b;
+    --bf-border: #222a35;
+    --bf-border-strong: #2a3340;
+    --bf-text: #e3e7ed;
+    --bf-heading: #f5f7fa;
+    --bf-text-soft: #c3cad4;
+    --bf-muted: #9aa4b2;
+    --bf-accent: #f2b84b;
+    --bf-accent-strong: #ffd17a;
+    --bf-accent-soft: #2a2213;
+    --bf-mono: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+[data-theme="night"] body {
+    padding-top: 56px;
+    background: var(--bf-bg);
+    color: var(--bf-text);
+    line-height: 1.75;
+}
+
+[data-theme="night"] a {
+    color: var(--bf-accent);
+}
+
+[data-theme="night"] a:hover {
+    color: var(--bf-accent-strong);
+}
+
+/* 顶栏 */
+[data-theme="night"] .top-navbar {
+    background: var(--bf-bg);
+    border-bottom: 1px solid var(--bf-border);
+    box-shadow: none;
+    height: 56px;
+}
+
+[data-theme="night"] .navbar-title {
+    color: var(--bf-heading);
+    font-size: 1.05rem;
+}
+
+[data-theme="night"] .sidebar-toggle {
+    color: var(--bf-muted);
+    border-radius: 8px;
+}
+
+[data-theme="night"] .sidebar-toggle:hover {
+    background: var(--bf-raised);
+    color: var(--bf-text);
+}
+
+[data-theme="night"] .nav-link,
+[data-theme="night"] .nav-link.active {
+    color: var(--bf-muted);
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 6px;
+}
+
+[data-theme="night"] .nav-link.active {
+    color: var(--bf-text);
+    background: var(--bf-raised);
+}
+
+[data-theme="night"] .nav-link:hover {
+    color: var(--bf-text);
+    background: var(--bf-raised);
+    border: 0;
+}
+
+[data-theme="night"] .search-input,
+[data-theme="night"] .search-input:focus {
+    background: var(--bf-surface);
+    border: 1px solid var(--bf-border-strong);
+    border-radius: 8px;
+    color: var(--bf-text);
+    height: 36px;
+}
+
+[data-theme="night"] .search-input:focus {
+    border-color: var(--bf-accent);
+}
+
+[data-theme="night"] .search-input::placeholder,
+[data-theme="night"] .search-icon {
+    color: var(--bf-muted);
+}
+
+[data-theme="night"] .search-container:focus-within .search-icon {
+    color: var(--bf-accent);
+}
+
+[data-theme="night"] .ai-entry-button {
+    background: var(--bf-accent-soft);
+    border: 1px solid var(--bf-accent);
+    border-radius: 8px;
+    color: var(--bf-accent);
+}
+
+[data-theme="night"] .ai-entry-button:hover {
+    background: #3a2f17;
+    border-color: var(--bf-accent-strong);
+    color: var(--bf-accent-strong);
+}
+
+/* 侧栏 */
+[data-theme="night"] .sidebar {
+    background: var(--bf-bg);
+    border-right: 1px solid var(--bf-border);
+    top: 56px;
+    height: calc(100vh - 56px);
+}
+
+[data-theme="night"] .sidebar-nav {
+    padding: 16px 10px;
+}
+
+[data-theme="night"] .sidebar-item {
+    margin-bottom: 1px;
+}
+
+[data-theme="night"] .sidebar-link {
+    color: var(--bf-text-soft);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.92rem;
+}
+
+[data-theme="night"] .sidebar-link:hover {
+    background: var(--bf-raised);
+    color: var(--bf-text);
+}
+
+[data-theme="night"] .sidebar-link.active {
+    background: var(--bf-raised);
+    color: var(--bf-accent);
+    font-weight: 500;
+}
+
+[data-theme="night"] .sidebar-children {
+    margin-left: 18px;
+    padding-left: 8px;
+    border-left: 1px solid var(--bf-border-strong);
+}
+
+[data-theme="night"] .sidebar-children .sidebar-link {
+    padding-left: 10px;
+    font-size: 0.86rem;
+    color: var(--bf-muted);
+}
+
+/* 正文 */
+[data-theme="night"] .container {
+    min-height: calc(100vh - 56px);
+}
+
+[data-theme="night"] .content-wrapper {
+    max-width: 1080px;
+    gap: 40px;
+}
+
+[data-theme="night"] .content-body {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 8px 8px 40px;
+    max-width: 740px;
+    color: var(--bf-text);
+}
+
+[data-theme="night"] .content-body h1,
+[data-theme="night"] .content-body h2,
+[data-theme="night"] .content-body h3,
+[data-theme="night"] .content-body h4,
+[data-theme="night"] .content-body h5,
+[data-theme="night"] .content-body h6 {
+    color: var(--bf-heading);
+    line-height: 1.35;
+}
+
+[data-theme="night"] .content-body h1 {
+    font-size: 2.2rem;
+    margin-top: 0;
+}
+
+[data-theme="night"] .content-body h2 {
+    font-size: 1.4rem;
+    margin-top: 2.2em;
+}
+
+[data-theme="night"] .content-body p,
+[data-theme="night"] .content-body li {
+    color: var(--bf-text-soft);
+}
+
+[data-theme="night"] .content-body code {
+    background: var(--bf-raised);
+    color: var(--bf-accent);
+    border-radius: 4px;
+    font-family: var(--bf-mono);
+    font-size: 0.88em;
+}
+
+[data-theme="night"] .content-body pre,
+[data-theme="night"] .content-body pre[class*="language-"] {
+    background: var(--bf-surface);
+    border: 1px solid var(--bf-border);
+    border-radius: 10px;
+    color: var(--bf-text);
+    font-size: 0.88rem;
+    padding: 16px 18px;
+    text-shadow: none;
+}
+
+[data-theme="night"] .content-body pre code,
+[data-theme="night"] .content-body pre code[class*="language-"] {
+    background: none;
+    color: inherit;
+    font-size: inherit;
+    text-shadow: none;
+}
+
+/* Prism 默认是浅色主题，这里改成适合深色背景的配色 */
+[data-theme="night"] .token.comment,
+[data-theme="night"] .token.prolog,
+[data-theme="night"] .token.doctype,
+[data-theme="night"] .token.cdata {
+    color: #6b7685;
+}
+
+[data-theme="night"] .token.punctuation,
+[data-theme="night"] .token.operator {
+    color: #a8b1be;
+    background: none;
+}
+
+[data-theme="night"] .token.property,
+[data-theme="night"] .token.tag,
+[data-theme="night"] .token.constant,
+[data-theme="night"] .token.symbol,
+[data-theme="night"] .token.key,
+[data-theme="night"] .token.atrule {
+    color: #8fb4ff;
+}
+
+[data-theme="night"] .token.string,
+[data-theme="night"] .token.char,
+[data-theme="night"] .token.attr-value,
+[data-theme="night"] .token.selector {
+    color: var(--bf-accent);
+}
+
+[data-theme="night"] .token.function,
+[data-theme="night"] .token.class-name,
+[data-theme="night"] .token.builtin {
+    color: #7fd1b9;
+}
+
+[data-theme="night"] .token.keyword,
+[data-theme="night"] .token.boolean,
+[data-theme="night"] .token.number {
+    color: #d7a6ff;
+}
+
+[data-theme="night"] .content-body blockquote {
+    border-left: 3px solid var(--bf-accent);
+    background: var(--bf-surface);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    color: var(--bf-text-soft);
+    font-style: normal;
+}
+
+[data-theme="night"] .content-body th,
+[data-theme="night"] .content-body td {
+    border-color: var(--bf-border-strong);
+}
+
+[data-theme="night"] .content-body th {
+    background: var(--bf-surface);
+}
+
+[data-theme="night"] .gb-hint {
+    color: var(--bf-text);
+}
+
+[data-theme="night"] .gb-note,
+[data-theme="night"] .gb-info {
+    background: #12213a;
+}
+
+[data-theme="night"] .gb-success {
+    background: #10281c;
+}
+
+[data-theme="night"] .gb-warning {
+    background: #2e2410;
+}
+
+[data-theme="night"] .gb-danger {
+    background: #33161a;
+}
+
+[data-theme="night"] .gb-tabs {
+    background: var(--bf-surface);
+    border-color: var(--bf-border);
+}
+
+[data-theme="night"] .tabs-header {
+    background: var(--bf-panel);
+}
+
+[data-theme="night"] .tab {
+    color: var(--bf-muted);
+}
+
+[data-theme="night"] .tab.active {
+    background: var(--bf-surface);
+    color: var(--bf-heading);
+}
+
+[data-theme="night"] .tab-panel {
+    color: var(--bf-text);
+}
+
+[data-theme="night"] .step-number {
+    background: transparent;
+    border: 1px solid var(--bf-accent);
+    color: var(--bf-accent);
+}
+
+[data-theme="night"] .step-line {
+    background: var(--bf-border-strong);
+}
+
+/* 本页目录 */
+[data-theme="night"] .toc {
+    background: transparent;
+    box-shadow: none;
+    flex-basis: 220px;
+    padding: 0;
+    top: 80px;
+}
+
+[data-theme="night"] .toc-header h3 {
+    color: var(--bf-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+}
+
+[data-theme="night"] .toc-toggle {
+    background: transparent;
+    color: var(--bf-muted);
+}
+
+[data-theme="night"] .toc-toggle:hover {
+    background: var(--bf-raised);
+}
+
+[data-theme="night"] .toc-link {
+    color: var(--bf-muted);
+    font-size: 0.85rem;
+    padding: 3px 0;
+}
+
+[data-theme="night"] .toc-link:hover,
+[data-theme="night"] .toc-link.active {
+    color: var(--bf-accent);
+}
+
+/* 搜索结果 */
+[data-theme="night"] .search-results {
+    background: var(--bf-panel);
+    border-color: var(--bf-border-strong);
+    color: var(--bf-text);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="night"] .search-result-item:hover,
+[data-theme="night"] .search-result-item.active {
+    background: var(--bf-raised);
+}
+
+[data-theme="night"] .search-result-title,
+[data-theme="night"] .search-empty-title {
+    color: var(--bf-heading);
+}
+
+[data-theme="night"] .search-result-url,
+[data-theme="night"] .search-result-heading,
+[data-theme="night"] .search-result-snippet,
+[data-theme="night"] .search-loading-state,
+[data-theme="night"] .search-empty-subtitle {
+    color: var(--bf-muted);
+}
+
+/* AI 问答：右侧整高抽屉，不遮暗正文 */
+[data-theme="night"] .ai-chat-overlay {
+    background: transparent;
+}
+
+[data-theme="night"] .ai-chat-panel {
+    top: 56px;
+    right: 0;
+    bottom: 0;
+    width: min(400px, 100vw);
+    max-height: none;
+    border-radius: 0;
+    border: 0;
+    border-left: 1px solid var(--bf-border);
+    background: var(--bf-panel);
+    color: var(--bf-text);
+    box-shadow: -16px 0 40px rgba(0, 0, 0, 0.35);
+    transform: translateX(24px);
+}
+
+[data-theme="night"] .ai-chat-panel.open {
+    transform: translateX(0);
+}
+
+[data-theme="night"] .ai-chat-title {
+    color: var(--bf-heading);
+}
+
+[data-theme="night"] .ai-chat-subtitle,
+[data-theme="night"] .ai-chat-config-tip,
+[data-theme="night"] .ai-chat-context-tip,
+[data-theme="night"] .ai-chat-status {
+    color: var(--bf-muted);
+}
+
+[data-theme="night"] .ai-chat-close {
+    background: var(--bf-raised);
+    color: var(--bf-text-soft);
+}
+
+[data-theme="night"] .ai-chat-config {
+    background: var(--bf-surface);
+    border-color: var(--bf-border);
+}
+
+[data-theme="night"] .ai-chat-config-header h3 {
+    color: var(--bf-heading);
+}
+
+[data-theme="night"] .ai-chat-field {
+    color: var(--bf-text-soft);
+}
+
+[data-theme="night"] .ai-chat-input,
+[data-theme="night"] .ai-chat-textarea {
+    background: var(--bf-bg);
+    border-color: var(--bf-border-strong);
+    color: var(--bf-text);
+}
+
+[data-theme="night"] .ai-chat-input:focus,
+[data-theme="night"] .ai-chat-textarea:focus {
+    border-color: var(--bf-accent);
+    box-shadow: 0 0 0 3px rgba(242, 184, 75, 0.16);
+}
+
+[data-theme="night"] .ai-chat-messages {
+    max-height: none;
+}
+
+[data-theme="night"] .ai-chat-message {
+    box-shadow: none;
+}
+
+[data-theme="night"] .ai-chat-message-content {
+    color: var(--bf-text);
+}
+
+[data-theme="night"] .ai-chat-message-user {
+    background: #1f2733;
+}
+
+[data-theme="night"] .ai-chat-message-user .ai-chat-message-role {
+    color: var(--bf-accent);
+}
+
+[data-theme="night"] .ai-chat-message-assistant {
+    background: var(--bf-surface);
+}
+
+[data-theme="night"] .ai-chat-message-assistant .ai-chat-message-role {
+    color: var(--bf-muted);
+}
+
+[data-theme="night"] .ai-chat-primary-button {
+    background: var(--bf-accent);
+    color: #1a1406;
+}
+
+[data-theme="night"] .ai-chat-secondary-button {
+    background: var(--bf-raised);
+    color: var(--bf-text);
+}
+
+[data-theme="night"] .ai-chat-status[data-state="success"] {
+    color: #5cc88f;
+}
+
+[data-theme="night"] .ai-chat-status[data-state="error"] {
+    color: #ff8a80;
+}
+
+[data-theme="night"] .back-to-top {
+    background: var(--bf-raised);
+    color: var(--bf-text);
+    border: 1px solid var(--bf-border-strong);
+}
+
+[data-theme="night"] .back-to-top:hover {
+    background: var(--bf-accent);
+    color: #1a1406;
+}
+
+@media (max-width: 1024px) {
+    [data-theme="night"] .toc {
+        background: var(--bf-surface);
+        border: 1px solid var(--bf-border);
+        border-radius: 10px;
+        padding: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    [data-theme="night"] .top-navbar {
+        height: 56px;
+    }
+
+    [data-theme="night"] .sidebar {
+        top: 56px;
+        height: calc(100vh - 56px);
+    }
+
+    [data-theme="night"] .ai-chat-panel {
+        left: 0;
+        width: auto;
+        padding: 14px;
+    }
+}
+
+/* 窄屏时侧边栏顶部的站点链接 */
+[data-theme="night"] .sidebar-mobile-links {
+    padding: 12px 10px;
+    border-bottom-color: var(--bf-border);
+}

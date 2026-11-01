@@ -130,6 +130,56 @@ if (hasSidebar) {
     window.addEventListener('resize', initSidebar);
 }
 
+// 标记侧边栏中的当前页面
+(function markCurrentSidebarLink() {
+    const currentFile = decodeURIComponent(window.location.pathname.split('/').pop() || 'index.html');
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+        const linkFile = decodeURIComponent((link.getAttribute('href') || '').split('/').pop());
+        if (linkFile === currentFile) {
+            link.classList.add('active');
+            link.setAttribute('aria-current', 'page');
+        }
+    });
+})();
+
+// 右侧目录随滚动高亮当前小节
+(function initTocScrollSpy() {
+    const tocLinks = Array.from(document.querySelectorAll('.toc-link[href^="#"]'));
+    if (tocLinks.length === 0) {
+        return;
+    }
+    const sections = tocLinks
+        .map(link => {
+            const id = decodeURIComponent(link.getAttribute('href').slice(1));
+            return { link, target: document.getElementById(id) };
+        })
+        .filter(item => item.target);
+    if (sections.length === 0) {
+        return;
+    }
+    let ticking = false;
+    function update() {
+        ticking = false;
+        const offset = 120;
+        let current = sections[0];
+        for (const item of sections) {
+            if (item.target.getBoundingClientRect().top - offset <= 0) {
+                current = item;
+            } else {
+                break;
+            }
+        }
+        sections.forEach(item => item.link.classList.toggle('active', item === current));
+    }
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            ticking = true;
+            window.requestAnimationFrame(update);
+        }
+    }, { passive: true });
+    update();
+})();
+
 // 右侧目录树（TOC）切换功能
 const tocToggle = document.getElementById('tocToggle');
 const toc = document.getElementById('toc');

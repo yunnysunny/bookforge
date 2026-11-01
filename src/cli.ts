@@ -6,8 +6,8 @@ import { Command } from 'commander';
 import { resolve } from 'node:path';
 import { HtmlGenerator } from './generators/html.generator.js';
 import { PdfGenerator } from './generators/pdf.generator.js';
-import type { BookForgeConfig } from './types/index.js';
-import { loadConfigFile } from './utils/config.js';
+import { HTML_THEMES, type BookForgeConfig } from './types/index.js';
+import { isHtmlTheme, loadConfigFile } from './utils/config.js';
 
 const program = new Command();
 const currentWorkingDir = process.cwd();
@@ -23,7 +23,8 @@ const addCommonOpts = (cmd: Command, outputDefault: string) =>
     .option('-m, --mode [mode]', '解析模式(gitbook, notion)', 'gitbook')
     .option('-s, --skip [skip]', '忽略的目录')
     .option('-t, --title <title>', '文档标题', 'BookForge')
-    .option('-c, --config <path>', '配置文件路径(默认自动查找 bookforge.yml)');
+    .option('-c, --config <path>', '配置文件路径(默认自动查找 bookforge.yml)')
+    .option('--theme <theme>', `HTML 主题(${HTML_THEMES.join(', ')})`, 'default');
 
 /**
  * 取值优先级：命令行显式传入 > 配置文件 > 选项默认值
@@ -45,6 +46,11 @@ async function resolveOptions(
   cmd: Command,
 ): Promise<ResolvedOptions> {
   const fromFile = (await loadConfigFile(options.config)) || {};
+  if (!isHtmlTheme(options.theme)) {
+    throw new TypeError(
+      `Invalid theme: ${options.theme}, expected one of ${HTML_THEMES.join(', ')}`,
+    );
+  }
 
   return {
     input: pick(cmd, 'input', options.input as string, fromFile.input),
@@ -55,6 +61,7 @@ async function resolveOptions(
     author: fromFile.author,
     giscus: fromFile.giscus,
     navLinks: fromFile.navLinks,
+    theme: pick(cmd, 'theme', options.theme, fromFile.theme),
   };
 }
 
