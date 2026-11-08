@@ -225,6 +225,25 @@ navLinks:
     expect(await loadConfigFile(configPath)).toEqual({ title: 'Test' });
   });
 
+  test('应该解析 customCss 配置', async () => {
+    const configPath = join(TEMP_DIR, 'custom-css.yml');
+    await writeFile(configPath, 'title: Test\ncustomCss: ./themes/my.css\n');
+
+    expect(await loadConfigFile(configPath)).toEqual({
+      title: 'Test',
+      customCss: './themes/my.css',
+    });
+  });
+
+  test('非字符串或空的 customCss 应该被忽略', async () => {
+    const configPath = join(TEMP_DIR, 'custom-css-invalid.yml');
+    await writeFile(configPath, 'title: Test\ncustomCss: 123\n');
+    expect(await loadConfigFile(configPath)).toEqual({ title: 'Test' });
+
+    await writeFile(configPath, 'title: Test\ncustomCss: "  "\n');
+    expect(await loadConfigFile(configPath)).toEqual({ title: 'Test' });
+  });
+
   test('应该自动发现默认配置文件', async () => {
     const configPath = join(TEMP_DIR, 'bookforge.yaml');
     await writeFile(configPath, 'title: Auto Discovered\n');

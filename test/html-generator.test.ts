@@ -1,7 +1,7 @@
 // HtmlGenerator 测试
 
 import { writeFileSync } from 'node:fs';
-import { readFile, rm } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import * as cheerio from 'cheerio';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -186,6 +186,98 @@ describe('HtmlGenerator', () => {
 
       const css = await readFile(path.join(mockOutputDir, 'themes', `${theme}.css`), 'utf-8');
       expect(css).toContain(`[data-theme="${theme}"]`);
+    });
+
+    it('应该复制 customCss 并在主题样式之后引入', async () => {
+      const customDir = path.join(__dirname, '.tmp-custom-css');
+      const customCssPath = path.join(customDir, 'my-theme.css');
+      await mkdir(customDir, { recursive: true });
+      await writeFile(customCssPath, '.content-body { --custom: 1; }\n');
+
+      try {
+        const customGenerator = new HtmlGenerator({
+          ...defaultOptions,
+          theme: 'night',
+          customCss: customCssPath,
+        });
+        const mockTree: TreeNode = {
+          title: 'Root',
+          children: [
+            {
+              title: '介绍',
+              path: './introduction.md',
+              content: '# 介绍',
+              headings: [],
+              children: [],
+            },
+          ],
+        };
+        vi.spyOn(GitbookParser.prototype, 'parse').mockResolvedValue(mockTree);
+        await customGenerator.generate();
+
+        const html = await readFile(path.join(mockOutputDir, 'index.html'), 'utf-8');
+        const $ = cheerio.load(html);
+        expect($('link[href="custom.css"]')).toHaveLength(1);
+        // 自定义样式必须排在主题样式之后，否则覆盖不了主题
+        expect(html.indexOf('themes/night.css')).toBeLessThan(html.indexOf('custom.css'));
+
+        const copied = await readFile(path.join(mockOutputDir, 'custom.css'), 'utf-8');
+        expect(copied).toContain('--custom: 1');
+      } finally {
+        await rm(customDir, { recursive: true, force: true });
+      }
+    });
+
+    it('默认主题下也可以使用 customCss', async () => {
+      const customDir = path.join(__dirname, '.tmp-custom-css-default');
+      const customCssPath = path.join(customDir, 'my-theme.css');
+      await mkdir(customDir, { recursive: true });
+      await writeFile(customCssPath, '.content-body { --custom: 1; }\n');
+
+      try {
+        const customGenerator = new HtmlGenerator({ ...defaultOptions, customCss: customCssPath });
+        vi.spyOn(GitbookParser.prototype, 'parse').mockResolvedValue({
+          title: 'Root',
+          children: [
+            {
+              title: '介绍',
+              path: './introduction.md',
+              content: '# 介绍',
+              headings: [],
+              children: [],
+            },
+          ],
+        });
+        await customGenerator.generate();
+
+        const html = await readFile(path.join(mockOutputDir, 'index.html'), 'utf-8');
+        const $ = cheerio.load(html);
+        expect($('html').attr('data-theme')).toBe('default');
+        expect($('link[href="custom.css"]')).toHaveLength(1);
+      } finally {
+        await rm(customDir, { recursive: true, force: true });
+      }
+    });
+
+    it('customCss 文件不存在时应该报错', async () => {
+      const customGenerator = new HtmlGenerator({
+        ...defaultOptions,
+        customCss: './not-exist-custom.css',
+      });
+      vi.spyOn(GitbookParser.prototype, 'parse').mockResolvedValue({
+        title: 'Root',
+        children: [
+          {
+            title: '介绍',
+            path: './introduction.md',
+            content: '# 介绍',
+            headings: [],
+            children: [],
+          },
+        ],
+      });
+
+      await expect(customGenerator.generate()).rejects.toThrow('自定义样式文件不存在');
     });
 
     it.skip('应该处理空目录树', async () => {

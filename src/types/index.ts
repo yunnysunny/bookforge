@@ -70,6 +70,8 @@ export interface BookForgeConfig {
   navLinks?: NavLink[];
   /** HTML 站点主题，默认 default */
   theme?: HtmlTheme;
+  /** 自定义主题样式文件（CSS）路径，在主题样式之后加载，仅 HTML 输出生效 */
+  customCss?: string;
 }
 
 export interface ParserOptions {

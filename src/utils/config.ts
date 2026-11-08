@@ -78,6 +78,10 @@ function validateConfig(raw: Record<string, unknown>): Partial<BookForgeConfig> 
     config.theme = raw.theme;
   }
 
+  if (typeof raw.customCss === 'string' && raw.customCss.trim() !== '') {
+    config.customCss = raw.customCss;
+  }
+
   if (Array.isArray(raw.skip)) {
     config.skip = raw.skip.filter((item): item is string => typeof item === 'string');
   }

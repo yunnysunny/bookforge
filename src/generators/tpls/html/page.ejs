@@ -12,6 +12,9 @@
     <% if (currentTheme !== 'default') { %>
     <link rel="stylesheet" href="themes/<%= currentTheme %>.css">
     <% } %>
+    <% if (typeof customCss !== 'undefined' && customCss) { %>
+    <link rel="stylesheet" href="<%= customCss %>">
+    <% } %>
     <link href="https://s4.zstatic.net/ajax/libs/prism/1.30.0/themes/prism.min.css" rel="stylesheet">
     <link href="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/katex.min.css" rel="stylesheet">
 </head>

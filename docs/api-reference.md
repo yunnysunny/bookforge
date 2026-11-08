@@ -21,6 +21,8 @@ new HtmlGenerator(config: BookForgeConfig)
 - `config.skip` - 要跳过的文件/目录模式数组（可选）
 - `config.navLinks` - 顶部导航栏的自定义链接（可选），详见[配置说明](./configuration.md#navlinks---导航栏链接)
 - `config.giscus` - giscus 评论区配置（可选），详见[配置说明](./configuration.md#giscus---评论区)
+- `config.theme` - HTML 站点主题，默认 `default`（可选），详见[配置说明](./configuration.md#theme---站点主题)
+- `config.customCss` - 自定义主题样式文件路径（可选），详见[配置说明](./configuration.md#customcss---自定义主题样式)
 
 ### 方法
 
@@ -115,6 +117,8 @@ interface BookForgeConfig {
   skip?: string[];
   giscus?: GiscusConfig;
   navLinks?: NavLink[];
+  theme?: HtmlTheme;
+  customCss?: string;
 }
 ```
 
@@ -155,6 +159,12 @@ type ParserMode = "gitbook" | "notion";
 
 ```typescript
 type Env = "html" | "pdf";
+```
+
+### HtmlTheme
+
+```typescript
+type HtmlTheme = "default" | "paper" | "night" | "workspace";
 ```
 
 ## loadConfigFile

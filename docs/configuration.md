@@ -56,6 +56,7 @@ bookforge html --title "临时标题"  # 标题为「临时标题」（命令行
 | `author` | string | — | — | 作者。仅配置文件支持，HTML 输出会渲染为 `<meta name="author">` |
 | `skip` | string[] | — | `-s, --skip` | 忽略的目录。命令行用逗号分隔，配置文件用数组 |
 | `theme` | string | `default` | `--theme` | HTML 站点主题，见下方「theme - 站点主题」。仅 HTML 输出生效 |
+| `customCss` | string | — | `--custom-css` | 自定义主题样式文件路径，见下方「customCss - 自定义主题样式」。仅 HTML 输出生效 |
 
 `output` 的默认值取决于子命令：`html` 为 `./dist/html`，`pdf` 为 `./dist/pdf`，`all` 为 `./dist`（并在其下再分出 `html/` 和 `pdf/` 两个子目录）。
 
@@ -86,6 +87,51 @@ bookforge html --theme night
 选用非 `default` 主题时，输出目录会多出 `themes/<主题名>.css`，在 `styles.css` 之后加载，只覆盖外观，页面结构和交互（侧栏、目录、搜索、AI 问答）完全一致。
 
 所有主题都会在侧边栏高亮当前页面，并让右侧目录随滚动高亮当前小节。
+
+如果主题里还有想改的地方，不必改 BookForge 源码，用下一节的 `customCss` 追加自己的样式即可。
+
+### customCss - 自定义主题样式
+
+写一个 CSS 文件，用 `customCss` 指向它，就等于自己定义了一套主题样式。生成时这个文件会被复制成输出目录下的 `custom.css`，并在 `styles.css` 和 `themes/<主题名>.css` **之后**引入，因此可以覆盖任意主题里的样式。**仅 HTML 输出生效。**
+
+| 字段 | 类型 | 默认值 | 对应命令行参数 | 说明 |
+|------|------|--------|----------------|------|
+| `customCss` | string | — | `--custom-css` | 自定义主题样式文件路径 |
+
+```yaml
+theme: night
+customCss: ./my-theme.css
+```
+
+```bash
+# 也可以只在命令行临时指定，优先级高于配置文件
+bookforge html --custom-css ./my-theme.css
+```
+
+样式文件里可以直接改主题变量，也可以写任意选择器：
+
+```css
+/* my-theme.css：在 night 主题上把强调色换成橙色 */
+[data-theme="night"] {
+  --bf-accent: #ff7a45;
+  --bf-accent-strong: #ff9b70;
+}
+
+/* 也可以直接针对具体元素覆盖 */
+.top-navbar {
+  border-bottom: 1px solid var(--bf-border);
+}
+```
+
+行为说明：
+
+- 路径相对于当前工作目录解析，也可以写绝对路径
+- 与 `theme` 无关，`default` 主题同样能用
+- 文件原样复制、不做任何处理，在输出目录里固定叫 `custom.css`
+- 文件不存在时直接报错退出，不会静默忽略
+- PDF 不受影响，`all` 命令里只有 HTML 部分会引入
+
+每个页面里都带 `data-theme="<主题名>"`，选择器用 `[data-theme="..."]` 限定可以只对某个主题生效，不写则对所有主题生效。
 
 ### navLinks - 导航栏链接
 
@@ -205,6 +251,7 @@ const generator = new HtmlGenerator({
 配置文件采取「宽松校验」策略：**类型不合法的字段会被丢弃，而不是报错**。
 
 - `format` 只接受 `html` / `pdf`，`mode` 只接受 `gitbook` / `notion`，`theme` 只接受 `default` / `paper` / `night` / `workspace`，其他值按未设置处理
+- `customCss` 只接受非空字符串，其他值按未设置处理（文件本身是否存在，要到生成时才能发现）
 - `skip` 数组中的非字符串项会被过滤掉
 - 文件本身不存在（自动查找时）或解析结果不是对象，都按未配置处理
 

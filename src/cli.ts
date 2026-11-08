@@ -24,7 +24,8 @@ const addCommonOpts = (cmd: Command, outputDefault: string) =>
     .option('-s, --skip [skip]', '忽略的目录')
     .option('-t, --title <title>', '文档标题', 'BookForge')
     .option('-c, --config <path>', '配置文件路径(默认自动查找 bookforge.yml)')
-    .option('--theme <theme>', `HTML 主题(${HTML_THEMES.join(', ')})`, 'default');
+    .option('--theme <theme>', `HTML 主题(${HTML_THEMES.join(', ')})`, 'default')
+    .option('--custom-css <path>', '自定义主题样式文件路径(CSS)，在主题样式之后加载');
 
 /**
  * 取值优先级：命令行显式传入 > 配置文件 > 选项默认值
@@ -62,6 +63,7 @@ async function resolveOptions(
     giscus: fromFile.giscus,
     navLinks: fromFile.navLinks,
     theme: pick(cmd, 'theme', options.theme, fromFile.theme),
+    customCss: pick(cmd, 'customCss', options.customCss, fromFile.customCss),
   };
 }
 

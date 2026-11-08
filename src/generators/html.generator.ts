@@ -1,7 +1,7 @@
 // HTML 生成器
 
 import { copyFile, mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 // import { fileURLToPath } from 'url';
 import type {
   BookForgeConfig,
@@ -13,7 +13,11 @@ import type {
   SearchIndexHeading,
   TreeNode,
 } from '../types/index.js';
+import { isExist } from '../utils/index.js';
 import { AbstractGenerator } from './abstract.generator.js';
+
+/** 自定义主题样式在输出目录中的文件名 */
+const CUSTOM_CSS_FILE_NAME = 'custom.css';
 
 export class HtmlGenerator extends AbstractGenerator {
   private sidebar: string = '';
@@ -21,6 +25,8 @@ export class HtmlGenerator extends AbstractGenerator {
   private readonly giscus: import('../types/index.js').GiscusConfig | undefined;
   private readonly author: string | undefined;
   private readonly theme: HtmlTheme;
+  /** 自定义主题样式源文件路径，在外部指定后会复制为 custom.css 并引入到每个页面 */
+  private readonly customCssPath: string | undefined;
   protected async doGenerate(treeRoot: TreeNode): Promise<void> {
     this.sidebar = await this.generateSidebar(treeRoot);
     // 生成主页面
@@ -46,6 +52,7 @@ export class HtmlGenerator extends AbstractGenerator {
     this.giscus = config.giscus;
     this.author = config.author;
     this.theme = config.theme || 'default';
+    this.customCssPath = config.customCss ? resolve(config.customCss) : undefined;
   }
 
   /**
@@ -98,6 +105,7 @@ export class HtmlGenerator extends AbstractGenerator {
       navLinks: this.navLinks,
       giscus: this.giscus,
       theme: this.theme,
+      customCss: this.customCssPath ? CUSTOM_CSS_FILE_NAME : undefined,
     });
 
     return html;
@@ -188,6 +196,22 @@ export class HtmlGenerator extends AbstractGenerator {
       await mkdir(join(this.outputDir, 'themes'), { recursive: true });
       await this.copyFile(`themes/${this.theme}.css`, `themes/${this.theme}.css`);
     }
+    await this.copyCustomCss();
+  }
+
+  /**
+   * 复制自定义主题样式文件，页面里在主题样式之后引入，可以覆盖已有主题的样式
+   */
+  private async copyCustomCss(): Promise<void> {
+    const source = this.customCssPath;
+    if (!source) {
+      return;
+    }
+    if (!(await isExist(source))) {
+      throw new TypeError(`自定义样式文件不存在: ${source}`);
+    }
+    await copyFile(source, join(this.outputDir, CUSTOM_CSS_FILE_NAME));
+    this.logger.info(`Generated custom css: ${CUSTOM_CSS_FILE_NAME}`);
   }
 
   /**
