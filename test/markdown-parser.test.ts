@@ -146,6 +146,16 @@ console.log('Hello World');
       expect(html).toContain('<code class="language-javascript">');
     });
 
+    it('标题锚点应该去掉中文标点', async () => {
+      const html = await parser.toHtml('# 安装与使用（快速开始）', {
+        contentPath: 'test.md',
+        destDir: 'test.html',
+      });
+
+      expect(html).toContain('id="安装与使用快速开始"');
+      expect(html).toContain('href="#安装与使用快速开始"');
+    });
+
     it('should handle empty content', async () => {
       const html = await parser.toHtml('', {
         contentPath: 'test.md',
